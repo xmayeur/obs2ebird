@@ -7,3 +7,5 @@ sqlalchemy
 pyyaml
 requests
 argparse
+geopy
+certifi

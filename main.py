@@ -8,6 +8,17 @@ from sys import exit
 from os.path import join
 import argparse
 import re
+from geopy.geocoders import Nominatim, options
+from geopy import distance
+import certifi
+import ssl
+import datetime
+
+ctx = ssl.create_default_context(cafile=certifi.where())
+options.default_ssl_context = ctx
+options.default_user_agent = 'myapp'
+geolocator = Nominatim(scheme='http')
+args = None
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -84,8 +95,7 @@ def import_obs():
         exit(-1)
 
 
-def export_to_ebird(start_date):
-    config = get_config()
+def export_to_ebird(start_date, end_date):
     out_file = join(config['paths']['out'], 'observations.csv')
 
     # CSV row's header
@@ -101,7 +111,7 @@ def export_to_ebird(start_date):
         'Num Observers': [],
         'Duration (min)': [],
         'All Obs Reported (Y/N)': [],
-        'Dist Traveled (Miles)':[],
+        'Dist Traveled (Miles)': [],
         'Notes': []
     }
 
@@ -109,7 +119,11 @@ def export_to_ebird(start_date):
 
     # Read the database
     sqlEngine = db_conn()
-    query = f'select * from {config["mysql"]["db"]} where date >= "{start_date}"'
+
+    if end_date:
+        query = f'select * from {config["mysql"]["db"]} where date >= "{start_date}"'
+    else:
+        query = f'select * from {config["mysql"]["db"]} where date between "{start_date}" and "{end_date}"'
 
     try:
         df = pd.read_sql(query, con=sqlEngine)
@@ -118,18 +132,61 @@ def export_to_ebird(start_date):
         exit(-1)
 
     # pivot data per date and location
+    df['location'] = df.apply(lambda x: x['location'].split('-')[0], axis=1)
     grp = df.groupby(['date', 'location'])
     for g in grp:
         g_date, g_loc = g[0]
         g_df = g[1]
-
+        g_df = g_df.sort_values(by=['time'])
         # convert date in mm/dd/yyy
-        g_year, g_mm, g_dd = re.findall(r'(\d{4})\-(\d{2})\-(\d{2})', g_date, re.DOTALL)[0]
+        g_year, g_mm, g_dd = re.findall(r'(\d{4})-(\d{2})-(\d{2})', g_date, re.DOTALL)[0]
         g_date = f'{g_mm}/{g_dd}/{g_year}'
-        protocol = 'travelling'
+
+        row = g_df.iloc[0]
+        ref = row['id']
+        start_time = row['time']
+        latitude = str(row['lat'])
+        longitude = str(row['lng'])
+        location = geolocator.reverse(latitude+","+longitude).raw['address']
+        print(location)
+        last_time = g_df.iloc[-1]['time']
+        s_time = datetime.datetime.strptime(start_time, "%H:%M:%S")
+        l_time = datetime.datetime.strptime(last_time, "%H:%M:%S")
+        delta = l_time - s_time
+        duration = delta.total_seconds()/60
+
+        miles = 0
+        p_lat = latitude
+        p_lon = longitude
+        for idx, r in g_df.iterrows():
+            if r['id'] == ref:
+                continue
+            lat = str(r['lat'])
+            lon = str(r['lng'])
+            delta = distance.distance((lat, lon), (p_lat, p_lon)).miles
+            miles += delta
+            p_lat = lat
+            p_lon = lon
+
+        protocol = 'Travelling' if (miles > 0) else 'Stationary'
+        # fill header
+
+        header['Latitude'].append(latitude)
+        header['Longitude'].append(longitude)
+        header['Date'].append(g_date)
+        header['Start Time'].append(start_time)
+        header['State'].append(location['county'])
+        header['Country'].append(location['country_code'].upper())
+        header['Protocol'].append(protocol)
+        header['Num Observers'].append(g_df['id'].count())
+        header['Duration (min)'].append(duration)
+        header['All Obs Reported (Y/N)'].append('Y')
+        header['Dist Traveled (Miles)'].append(miles)
+        header['Notes'].append('')
+
+        # fill observations
         grp_obs = g_df[['species name', 'number']]
         grp_obs.insert(1, 'gender', '')
-
 
     pass
 
@@ -143,20 +200,34 @@ def export_to_ebird(start_date):
 
 
 def main():
+    global args
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-i',
         '--import_obs',
-        action='store_true',
         required=False,
         help='Import a .CSV file from observations.be and store it in MySQL db'
     )
 
     parser.add_argument(
         '-o',
-        '--export_ebird_from',
+        '--ebird_output_file',
+        required=False,
+        help='Export observation as ebird .CSV file path'
+    )
+
+    parser.add_argument(
+        '-f',
+        '--from_date',
         required=False,
         help='Export observation as ebird .CSV file as from ISO date (yyyy-mm-dd)'
+    )
+
+    parser.add_argument(
+        '-t',
+        '--to_date',
+        required=False,
+        help='Export observation up to this ISO date (yyy-mm-dd)'
     )
 
     args = parser.parse_args()
@@ -164,9 +235,8 @@ def main():
     if args.import_obs:
         import_obs()
 
-    if args.export_ebird_from:
-        from_date = args.export_ebird_from
-        export_to_ebird(from_date)
+    if args.ebird_output_file:
+        export_to_ebird(args.from_date, args.to_date)
 
 
 if __name__ == "__main__":
