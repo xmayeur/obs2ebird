@@ -13,6 +13,7 @@ from geopy import distance
 import certifi
 import ssl
 import datetime
+import csv
 
 ctx = ssl.create_default_context(cafile=certifi.where())
 options.default_ssl_context = ctx
@@ -90,17 +91,20 @@ def import_obs():
     try:
         with sqlEngine.begin() as cnx:
             d.to_sql(name=config['mysql']['db'], con=cnx, if_exists='replace')
+        # with sqlEngine.begin() as cnx:
+        #     sql = f"REPLACE INTO {config['mysql']['db']} SELECT * FROM temp_table"
+        #     cnx.execute(sql)
+
     except sqlalchemy.exc.OperationalError:
         print('Cannot connect to MySQL database - check if running')
         exit(-1)
 
 
-def export_to_ebird(start_date, end_date):
-    out_file = join(config['paths']['out'], 'observations.csv')
+def export_to_ebird(output_file, start_date, end_date):
 
     # CSV row's header
     header = {
-        '': [],
+        'Location': [],
         'Latitude': [],
         'Longitude': [],
         'Date': [],
@@ -112,6 +116,7 @@ def export_to_ebird(start_date, end_date):
         'Duration (min)': [],
         'All Obs Reported (Y/N)': [],
         'Dist Traveled (Miles)': [],
+        'Area Covered (Acres)': [],
         'Notes': []
     }
 
@@ -131,34 +136,46 @@ def export_to_ebird(start_date, end_date):
         print('Cannot connect to MySQL database - check if running')
         exit(-1)
 
+    if len(df) == 0:
+        print('Nothing to export')
+        exit(0)
+
     # pivot data per date and location
+    # simplify location to the city
     df['location'] = df.apply(lambda x: x['location'].split('-')[0], axis=1)
+    # df['name'] = df['species name'] + ' - ' + df['scientific name']
+    df['name'] = df['species name']
     grp = df.groupby(['date', 'location'])
     for g in grp:
         g_date, g_loc = g[0]
         g_df = g[1]
         g_df = g_df.sort_values(by=['time'])
+
         # convert date in mm/dd/yyy
         g_year, g_mm, g_dd = re.findall(r'(\d{4})-(\d{2})-(\d{2})', g_date, re.DOTALL)[0]
         g_date = f'{g_mm}/{g_dd}/{g_year}'
-
+        # get info from first row to initiate the header
         row = g_df.iloc[0]
         ref = row['id']
+
+        # Time & duration calculation
         start_time = row['time']
-        latitude = str(row['lat'])
-        longitude = str(row['lng'])
-        location = geolocator.reverse(latitude+","+longitude).raw['address']
-        print(location)
         last_time = g_df.iloc[-1]['time']
         s_time = datetime.datetime.strptime(start_time, "%H:%M:%S")
         l_time = datetime.datetime.strptime(last_time, "%H:%M:%S")
         delta = l_time - s_time
-        duration = delta.total_seconds()/60
+        duration = int(1 + delta.total_seconds() / 60)
+
+        # Location, and distance measurement
+        latitude = str(row['lat'])
+        longitude = str(row['lng'])
+        location = geolocator.reverse(latitude+","+longitude).raw['address']
 
         miles = 0
         p_lat = latitude
         p_lon = longitude
         for idx, r in g_df.iterrows():
+            # skip first row, already initialized
             if r['id'] == ref:
                 continue
             lat = str(r['lat'])
@@ -168,35 +185,63 @@ def export_to_ebird(start_date, end_date):
             p_lat = lat
             p_lon = lon
 
-        protocol = 'Travelling' if (miles > 0) else 'Stationary'
-        # fill header
+        protocol = 'traveling' if (miles > 0) else 'stationary'
 
+        # fill header
+        header['Location'].append((g_loc))
         header['Latitude'].append(latitude)
         header['Longitude'].append(longitude)
         header['Date'].append(g_date)
         header['Start Time'].append(start_time)
-        header['State'].append(location['county'])
+        code = [c for c in location.keys() if 'ISO3166' in c][0]
+        header['State'].append(location[code].split('-')[1])
         header['Country'].append(location['country_code'].upper())
         header['Protocol'].append(protocol)
-        header['Num Observers'].append(g_df['id'].count())
+        header['Num Observers'].append(1)
         header['Duration (min)'].append(duration)
         header['All Obs Reported (Y/N)'].append('Y')
         header['Dist Traveled (Miles)'].append(miles)
+        header['Area Covered (Acres)'].append('')
         header['Notes'].append('')
 
         # fill observations
-        grp_obs = g_df[['species name', 'number']]
-        grp_obs.insert(1, 'gender', '')
+        grp_obs = g_df[['name', 'number']]
+        obs.append(grp_obs)
 
-    pass
+    # Assemble output
+    csv_file = open(output_file, 'w')
+    wr = csv.writer(csv_file, delimiter=',')
 
-    # fill observations
+    # generate header
+    for k, v in header.items():
+        row = []
 
-    # calculate start time and duration per date & location
+        if k == 'Location':
+            row.append('')
+        else:
+            row.append(k)
+        row.append('')
+        # for x in v:
+        #    row.append(x)
+        row += v
+        wr.writerow(row)
 
-    # create header rows 1-14 and location's columns
+    # generate observations list
+    names = dict()
 
-    # concat everything in header-less CSV file
+    for l in list(df['name'].unique()):
+        names[l] = [l] + ['']*(len(obs)+1)
+
+    for i, o in enumerate(obs):
+        for x in o.iterrows():
+            name = x[1]['name']
+            nr = x[1]['number']
+            names[name][i+2]=nr
+
+    for r in names.values():
+        wr.writerow(r)
+
+    csv_file.close()
 
 
 def main():
@@ -236,7 +281,7 @@ def main():
         import_obs()
 
     if args.ebird_output_file:
-        export_to_ebird(args.from_date, args.to_date)
+        export_to_ebird(args.ebird_output_file, args.from_date, args.to_date)
 
 
 if __name__ == "__main__":
