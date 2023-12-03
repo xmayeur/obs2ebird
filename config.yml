@@ -1,0 +1,8 @@
+paths:
+  in: obs_data
+  out: ebird_data
+
+mysql:
+  host: localhost # 192.168.129.5 #
+  port: 3307 # 3306
+  db: ornitho
