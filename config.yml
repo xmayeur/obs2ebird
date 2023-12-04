@@ -4,7 +4,7 @@ mysql:
   db: ornitho
 
 sqlite:
-  db: ./obs_data/observations.sqlite
+  db: observations.sqlite
 
 default:
   db_dialect: sqlite
