@@ -9,3 +9,4 @@ requests
 argparse
 geopy
 certifi
+pillow
