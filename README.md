@@ -23,3 +23,22 @@ observation lists.
 - The file can now be imported to [eBird import form](https://ebird.org/import/upload.form?theme=ebird), selecting the observation list option
 
 - Note that a mapping is sometime needed between the provided species names and/or location names and the one accepted by eBird. This mapping is saved between sessions.
+
+## Use of MySQL database
+
+MySQL database is also supported. 
+
+In that case, the config.yaml file should be modified as follows:
+
+      default:
+        db_dialect: mysql
+
+      mysql:
+        host: <url>>
+        port: <port>
+        db: <db name>
+
+
+
+The `get_secrets.py` module should be adapted in order to manage the database user and password retrieval in order to log in the MySQL database
+The provided example read user and passwords from a Hashicorp Vault and a `secret.yml` file locally store the token to access the vault.
