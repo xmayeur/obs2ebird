@@ -1,8 +1,10 @@
-paths:
-  in: obs_data
-  out: ebird_data
-
 mysql:
-  host: localhost # 192.168.129.5 #
-  port: 3307 # 3306
+  host: localhost
+  port: 3307
   db: ornitho
+
+sqlite:
+  db: ./obs_data/observations.sqlite
+
+default:
+  db_dialect: sqlite
