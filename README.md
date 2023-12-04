@@ -8,7 +8,7 @@ observation lists.
 - Lists from Observation.org need first to be downloaded in .CSV format.
 - All lists are imported into a local database by executing the command:
 
-        $ python obs2ebird.py -i "<path_to_observations_files/*.csv>
+        $ python obs2ebird.py -i "<path_to_observations_files/*.csv>"
 
 - The local database path is defined by default in the config.yml file as `observations.sqlite`
 
@@ -16,10 +16,10 @@ observation lists.
 
 - The import file for eBird.org observation is created by executing the command:
 
-      $ python obs2ebird.py -o <path_to_ebird_file.csv> [--from start_date] [--to end_date] 
+      $ python obs2ebird.py -o "<path_to_ebird_file.csv>" [--from start_date] [--to end_date] 
 
 - Date are expressed in the ISO format "yyyy-mm-dd"
 
-- The file can now be imported to [eBird import form](https://ebird.org/import/upload.form?theme=ebird),selecting the observation list option
+- The file can now be imported to [eBird import form](https://ebird.org/import/upload.form?theme=ebird), selecting the observation list option
 
 - Note that a mapping is sometime needed between the provided species names and/or location names and the one accepted by eBird. This mapping is saved between sessions.
