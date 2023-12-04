@@ -41,4 +41,4 @@ In that case, the config.yaml file should be modified as follows:
 
 
 The `get_secrets.py` module should be adapted in order to manage the database user and password retrieval in order to log in the MySQL database
-The provided example read user and password from a Hashicorp Vault and a `secrets.yml` file locally store the token to access the vault.
+The provided example read user and password from a Hashicorp Vault where a `secrets.yml` file locally stores the token to access the vault.
