@@ -5,7 +5,7 @@ import warnings
 from yaml import load, Loader
 from glob import glob
 from sys import exit
-from os.path import basename
+from os.path import basename, dirname, join
 import argparse
 import re
 from geopy.geocoders import Nominatim, options
@@ -67,17 +67,27 @@ def db_conn():
                              pool_recycle=3600), db
 
 
-def import_obs(input_file):
+def import_obs(input_file, folder='.'):
     """
-    Read input data from CSV files and save to MySQL database.
+    Import OBS Method
 
-    :return: None
+    Imports observation data from given input file(s) into a SQL database.
+
+    :param input_file: A string representing the path or paths to the input files.
+                       Multiple files can be specified by separating them with commas.
+                       Wildcards are allowed (unix style)
+    :param folder:     file directory if not part of the input_file path
+    :return: None|str  A status string is return in case of error
     """
     # read input data
     d = pd.DataFrame()
-    for f in glob(input_file):
-        df = pd.read_csv(f, delimiter=',', engine='python', encoding='UTF_8').fillna('')
-        d = pd.concat([d, df])
+    for in_file in input_file.split(','):
+        in_file = in_file.strip()
+        if dirname(in_file) == '':
+            in_file = join(folder, basename(in_file))
+        for f in glob(in_file):
+            df = pd.read_csv(f, delimiter=',', engine='python', encoding='UTF_8').fillna('')
+            d = pd.concat([d, df])
 
     # and save to mySQL db
     sqlEngine, db = db_conn()
@@ -93,8 +103,8 @@ def import_obs(input_file):
             #     cnx.execute(sql)
 
     except sqlalchemy.exc.OperationalError:
-        print('Cannot connect to database - check if running')
-        exit(-1)
+        return 'Cannot connect to database - check if running'
+
 
 
 def query_database(start_date, end_date, sqlEngine, dbname):
