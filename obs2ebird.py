@@ -1,11 +1,13 @@
 import pandas as pd
 import sqlalchemy.exc
+import yaml
 from sqlalchemy import create_engine
 import warnings
-from yaml import load, Loader
+from yaml import load, Loader, dump, Dumper
 from glob import glob
 from sys import exit
-from os.path import basename, dirname, join
+from os.path import basename, dirname, join, exists
+from os import getenv, makedirs
 import argparse
 import re
 from geopy.geocoders import Nominatim, options
@@ -34,8 +36,20 @@ def get_config():
     :return: The loaded config object from the config file.
     """
     # read config file
+    directory = join(getenv('HOME'), '.config')
+    # create a default config file is not exists
+    if not exists(directory):
+        makedirs(join(getenv('HOME'), '.config'))
+    config_file = join(directory, 'o2eb.yml')
+    if not exists(config_file):
+        config = {
+            "sqlite": {"db": "observations.sqlite"},
+            "default": {"db_dialect": "sqlite"}
+        }
+        dump(config, open(config_file, 'w'), Dumper=Dumper)
+
     try:
-        return load(open(join(__dir__, 'config.yml'), 'r'), Loader=Loader)
+        return load(open(config_file, 'r'), Loader=Loader)
     except IOError:
         print('Config file not found!')
         return None
