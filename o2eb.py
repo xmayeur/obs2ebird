@@ -16,7 +16,9 @@ from os.path import dirname, basename, join, abspath
 from os import getcwd
 from obs2ebird import import_obs, export_to_ebird
 from datetime import date
+from get_config import get_config, write_config_file
 
+config = get_config()
 
 __dir__ = dirname(__file__)
 
@@ -29,6 +31,12 @@ class O2ebGui(tk.Tk):
         self.win_width = 1000
         self.win_height = 700
         self.selected_files = []
+        self.db = tk.StringVar()
+        self.dbname = tk.StringVar()
+        self.mysql_host = tk.StringVar()
+        self.mysql_port = tk.StringVar()
+        self.choice = tk.StringVar()
+        self.top = None
 
         self.title("Observation to eBird list conversion")
         self.geometry(f"{self.win_width}x{self.win_height}")
@@ -180,8 +188,88 @@ class O2ebGui(tk.Tk):
         self.lbl_export_status = ttk.Label(self.frm, textvariable=self.export_status, style='Status.TLabel')
         self.lbl_export_status.grid(column=0, row=row, sticky=tk.E, padx=0, pady=0)
 
-    #    def check_files_exist(self, filepath):
-    #        return True
+        # create a button to modify settings
+        row += 2
+        self.btn_settings = ttk.Button(self.frm, text="Settings", command=self.settings)
+        self.btn_settings.grid(column=0, row=row, sticky=tk.E)
+
+    def settings(self):
+        """
+
+        Manage the config file data as per:
+        mysql:
+          host: xxx
+          port: xxx
+          db: xxx
+
+        sqlite:
+          db: xxx
+
+        default:
+          db_dialect: [mysql | sqlite]
+
+
+        :return:
+        """
+        # create top window
+        self.top = tk.Toplevel(self.frm)
+        top_width = 400
+        top_height = 300
+        self.top.geometry(f"{top_width}x{top_height}")
+
+        row = 0
+        lbl1 = ttk.Label(self.top, text='Database', foreground='green')
+        lbl1.grid(row=row, column=0, sticky=tk.W, padx=20, pady=10)
+        row += 1
+        rb_sqlite = ttk.Radiobutton(self.top, text='sqlite', variable=self.choice,
+                                    value='sqlite', command=self.db_selected)
+        rb_mysql = ttk.Radiobutton(self.top, text='mysql', variable=self.choice,
+                                   value='mysql', command=self.db_selected)
+        rb_sqlite.grid(row=row, sticky=tk.W, padx=20)
+        row += 1
+        rb_mysql.grid(row=row, sticky=tk.W, padx=20)
+        if config['default']['db_dialect'] == 'sqlite':
+            rb_sqlite.invoke()
+        else:
+            rb_mysql.invoke()
+        self.dbname.set(config[self.db.get()]['db'])
+
+        row += 2
+        lbl2 = ttk.Label(self.top, text='Name of the database:', foreground='green')
+        lbl2.grid(row=row, sticky=tk.W, padx=20)
+
+        row += 1
+        lbl_url = ttk.Label(self.top, text="host url", foreground='green')
+        in_url = ttk.Entry(self.top, textvariable=self.mysql_host, justify=tk.LEFT, width=15)
+        # TO DO add widget to the class, and make them visible or invisible according to db choice
+
+        row += 1
+        db_in = ttk.Entry(self.top, textvariable=self.dbname, justify=tk.LEFT, width=50)
+        db_in.grid(row=row, padx=20)
+        db_in.update()
+
+        row += 1
+        btn_cancel = ttk.Button(self.top, text='Cancel', command=self.top.withdraw)
+        btn_cancel.grid(row=row, sticky=tk.E)
+        btn_cancel.update()
+        ttk.Button(self.top, text='Save', command=self.save_config).grid(row=row, sticky=tk.E,
+                                                                         padx=btn_cancel.winfo_width() + 20)
+
+    def save_config(self):
+        _config = {
+            "mysql": {
+                "host": self.mysql_host.get(),
+                "port": self.mysql_port.get(),
+                "db": self.dbname.get()
+            },
+            "sqlite": {"db": self.dbname.get()},
+            "default": {"db_dialect": self.db.get()}
+        }
+        write_config_file(_config)
+        self.top.withdraw()
+
+    def db_selected(self):
+        self.db.set(self.choice.get())
 
     @staticmethod
     def get_image(image_path: str, size=tuple(), keep_proportion=True):

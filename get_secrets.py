@@ -1,9 +1,9 @@
 from yaml import load, Loader
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.Cipher import PKCS1_OAEP
 from base64 import b64encode, b64decode
 from os.path import join, exists
-from os import getenv
+from os import getenv, makedirs
 
 
 class RSAcipher:
@@ -38,7 +38,7 @@ class RSAcipher:
     def decrypt(self, msg):
         try:
             return self.d_rsa.decrypt(b64decode(msg)).decode()
-        except Exception as e:
+        except Exception:
             return None
 
     def create_keyset(self, name='key'):
@@ -55,7 +55,7 @@ def get_secret(key: str, base_url='', token='', cert="root_ca.pem") -> tuple:
     :param key: The ID of the secret to retrieve
     :param base_url: The base URL of the Vault server (default is VAULT_ADDR)
     :param token: The token to authenticate with the Vault server (default is TOKEN)
-    :param cert: The path to the certificate file to verify the Vault server's SSL certificate (default is "root_ca.pem")
+    :param cert: The path to the certificate to verify the Vault server's SSL certificate (default is "root_ca.pem")
     :return: A tuple containing the key-value pairs of the secret (None, None) if the secret retrieval fails
 
     This method retrieves a secret from a Vault server using the provided ID.
@@ -66,15 +66,19 @@ def get_secret(key: str, base_url='', token='', cert="root_ca.pem") -> tuple:
     import requests
 
     try:
+        directory = join(getenv('HOME'), '.config')
+        if not exists(directory):
+            makedirs(directory)
+        secret_file = join(getenv('HOME'), '.config', 'secrets.bin')
         if not exists(join(getenv('HOME'), '.ssl/priv_o2eb.pem')):
             rsa = RSAcipher('o2eb', create_keys=True)
             # We assume that a secrets.bin file exists with a yaml structure containing the secrets
-            data = open('secrets.bin', 'r').read()
+            data = open(secret_file, 'r').read()
             # This file will be encrypted and overwritten with the created keys
             enc_data = rsa.encrypt(data)
-            open('secrets.bin', 'w').write(enc_data)
+            open(secret_file, 'w').write(enc_data)
         rsa = RSAcipher('o2eb')
-        enc_data = open('secrets.bin', 'r').read()
+        enc_data = open(secret_file, 'r').read()
         data = rsa.decrypt(enc_data)
         secrets = load(data, Loader=Loader)
         if token == '':
@@ -97,4 +101,3 @@ def get_secret(key: str, base_url='', token='', cert="root_ca.pem") -> tuple:
     else:
         print(f"http error {resp.status_code}")
         return None, None
-

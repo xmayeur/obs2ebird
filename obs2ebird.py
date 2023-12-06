@@ -1,13 +1,12 @@
 import pandas as pd
 import sqlalchemy.exc
-import yaml
 from sqlalchemy import create_engine
 import warnings
-from yaml import load, Loader, dump, Dumper
+
 from glob import glob
 from sys import exit
-from os.path import basename, dirname, join, exists
-from os import getenv, makedirs
+from os.path import basename, dirname, join
+
 import argparse
 import re
 from geopy.geocoders import Nominatim, options
@@ -17,6 +16,10 @@ import ssl
 import datetime
 import csv
 import sqlite3
+
+from get_config import get_config
+
+config = get_config()
 
 __dir__ = dirname(__file__)
 
@@ -29,34 +32,6 @@ args = None
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
-def get_config():
-    """
-    Method to read and load the config file.
-
-    :return: The loaded config object from the config file.
-    """
-    # read config file
-    directory = join(getenv('HOME'), '.config')
-    # create a default config file is not exists
-    if not exists(directory):
-        makedirs(join(getenv('HOME'), '.config'))
-    config_file = join(directory, 'o2eb.yml')
-    if not exists(config_file):
-        config = {
-            "sqlite": {"db": join(getenv('HOME'),"observations.sqlite")},
-            "default": {"db_dialect": "sqlite"}
-        }
-        dump(config, open(config_file, 'w'), Dumper=Dumper)
-
-    try:
-        return load(open(config_file, 'r'), Loader=Loader)
-    except IOError:
-        print('Config file not found!')
-        return None
-
-
-# read config file
-config = get_config()
 is_sqlite = (config['default']['db_dialect'] == 'sqlite')
 
 
@@ -120,7 +95,6 @@ def import_obs(input_file, folder='.'):
 
     except sqlalchemy.exc.OperationalError:
         return 'Cannot connect to database - check if running'
-
 
 
 def query_database(start_date, end_date, sqlEngine, dbname):
