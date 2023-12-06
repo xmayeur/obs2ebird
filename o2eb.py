@@ -146,6 +146,7 @@ class O2ebGui(tk.Tk):
         val = (self.register(self.val_date), '%P')
         inval = (self.register(self.invalid_date),)
         self.from_date = tk.StringVar()
+        self.from_date.set("2020-01-01")
         self.from_inp = ttk.Entry(self.frm, textvariable=self.from_date, justify=tk.LEFT, width=10,
                                   validatecommand=val, validate='focusout', invalidcommand=inval)
         self.from_inp.grid(column=0, row=row, sticky=tk.W, padx=50, pady=0)

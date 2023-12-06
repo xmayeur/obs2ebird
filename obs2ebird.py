@@ -43,7 +43,7 @@ def get_config():
     config_file = join(directory, 'o2eb.yml')
     if not exists(config_file):
         config = {
-            "sqlite": {"db": "observations.sqlite"},
+            "sqlite": {"db": join(getenv('HOME'),"observations.sqlite")},
             "default": {"db_dialect": "sqlite"}
         }
         dump(config, open(config_file, 'w'), Dumper=Dumper)
