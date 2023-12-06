@@ -22,7 +22,7 @@ class O2ebGui(tk.Tk):
 
         self.win_width = 1000
         self.win_height = 700
-        self.input_files = []
+        self.selected_files = []
 
         self.title("Observation to eBird list conversion")
         self.geometry(f"{self.win_width}x{self.win_height}")
@@ -48,7 +48,7 @@ class O2ebGui(tk.Tk):
         # Label with invite to enter observation list file(s)
         self.lbl_list = ttk.Label(self.frm,
                                   text="Enter Observation.org list file(s) or select using folder button",
-                                  foreground='yellow')
+                                  foreground='green')
         self.lbl_list.grid(column=0, row=row, sticky=tk.W, padx=50, pady=10)
 
         row += 1
@@ -104,6 +104,51 @@ class O2ebGui(tk.Tk):
         sep = ttk.Separator(self.frm, orient=tk.HORIZONTAL, style='TSeparator')
         sep.grid(column=0, row=row, columnspan=2, sticky=tk.EW, pady=10)
 
+        row += 1
+        # Label for eBird.org list file
+        self.lbl_list2 = ttk.Label(self.frm,
+                                  text="Enter eBird.org list file or select using folder button",
+                                  foreground='green')
+        self.lbl_list2.grid(column=0, row=row, sticky=tk.W, padx=50, pady=10)
+
+        row += 1
+        # define an input field to capture observation file to export
+        # val = self.register(self.check_files_exist)
+        self.e_file_name = tk.StringVar()
+        self.e_inp = ttk.Entry(self.frm, textvariable=self.e_file_name, justify=tk.LEFT, width=34)
+        self.e_inp.grid(column=0, row=row, sticky=tk.W, padx=50, pady=0)
+        self.e_inp.update()
+        self.e_inp.focus()
+
+        self.btn_folder2 = ttk.Button(
+            self.frm,
+            width=0,
+            image=_img,
+            command=self.select_file
+        )
+        self.btn_folder2.image = _img
+        self.btn_folder2.grid(column=0, row=row, padx=self.e_inp.winfo_width() - 40)
+
+        # Add labels and entries for from/to dates
+        # TODO
+
+        # create a processing button
+        self.btn_export = ttk.Button(self.frm,
+                                     text="GENERATE eBIRD FILE",
+                                     command=self.export)
+        self.btn_export.grid(column=0, row=row, sticky=tk.E)
+
+        # self.btn_quit = ttk.Button(self.frm, text="Quit", command=self.destroy)
+        # self.btn_quit.grid(column=1, row=3)
+
+        row += 1
+        # status label
+        self.export_status = tk.StringVar()
+        self.export_status.set('')
+        self.style.configure('Status.TLabel', foreground='green')
+        self.lbl_export_status = ttk.Label(self.frm, textvariable=self.export_status, style='Status.TLabel')
+        self.lbl_export_status.grid(column=0, row=row, sticky=tk.E, padx=0, pady=0)
+
     #    def check_files_exist(self, filepath):
     #        return True
 
@@ -124,17 +169,37 @@ class O2ebGui(tk.Tk):
 
         """
         filetypes = (('CSV file', '*.csv'),)
-        self.input_files = fd.askopenfiles(
+        self.selected_files = fd.askopenfiles(
             title='Select files',
             initialdir='./obs_data',
             filetypes=filetypes
         )
-        if len(self.input_files) != 0:
-            _text = ', '.join([os.path.basename(x.name) for x in self.input_files])
-            self.file_folder.set(f"Current folder: {os.path.dirname(self.input_files[0].name)}")
+        if len(self.selected_files) != 0:
+            _text = ', '.join([os.path.basename(x.name) for x in self.selected_files])
+            self.file_folder.set(f"Current folder: {os.path.dirname(self.selected_files[0].name)}")
             self.inp.delete(0, tk.END)
             self.inp.insert(0, _text)
             self.btn_upload.focus()
+
+    def select_file(self):
+        """
+        Selects one or more CSV files using a file dialog box.
+
+        Returns:
+            None
+
+        """
+        filetypes = (('CSV file', '*.csv'),)
+        self.selected_files = fd.askopenfile(
+            title='Select file',
+            initialdir='./ebird_data',
+            filetypes=filetypes
+        )
+        if self.selected_files is not None:
+            _text = self.selected_files.name
+            self.e_inp.delete(0, tk.END)
+            self.e_inp.insert(0, _text)
+            self.btn_export.focus()
 
     def upload(self):
         if self.inp.get() == '':
@@ -145,6 +210,13 @@ class O2ebGui(tk.Tk):
             _folder = _folder.split(":")[1].strip()
         status = import_obs(self.inp.get(), folder=_folder)
         self.upload_status.set('File(s) processed' if status is None else f'Error: {status}')
+
+    def export(self):
+        if self.e_inp.get() == '':
+            return "Error: no file name has been provided"
+        else:
+            status = None
+        self.export_status.set('File processed' if status is None else f'Error: {status}')
 
 
 def main():
