@@ -12,9 +12,13 @@ from tkinter import filedialog as fd
 from tkinter.messagebox import showinfo
 from tkinter import ttk
 from PIL import ImageTk, Image
-import os
+from os.path import dirname, basename, join, abspath
+from os import getcwd
 from obs2ebird import import_obs, export_to_ebird
 from datetime import date
+
+
+__dir__ = dirname(__file__)
 
 
 class O2ebGui(tk.Tk):
@@ -78,7 +82,7 @@ class O2ebGui(tk.Tk):
         row += 1
         # display the current directory
         self.file_folder = tk.StringVar()
-        self.file_folder.set(f"Current folder: {os.path.abspath(os.getcwd())}")
+        self.file_folder.set(f"Current folder: {abspath(getcwd())}")
         self.lbl_folder = ttk.Label(self.frm, textvariable=self.file_folder)
         self.lbl_folder.grid(column=0, row=row, sticky=tk.W, padx=50, pady=0)
         _img = self.get_image('./images/folder.png', (30, 30), True)
@@ -180,7 +184,7 @@ class O2ebGui(tk.Tk):
 
     @staticmethod
     def get_image(image_path: str, size=tuple(), keep_proportion=True):
-        _img = Image.open(image_path)
+        _img = Image.open(join(__dir__, image_path))
         w, h = size
         factor = w / _img.width if keep_proportion else 1
         _img = _img.resize((w, int(_img.height * factor)), Image.LANCZOS)
@@ -201,8 +205,7 @@ class O2ebGui(tk.Tk):
     @staticmethod
     def invalid_date():
         showinfo(title='Date entry',
-                 message='Please enter a valid data in format yyyy-mm-dd',
-                 icon='info')
+                 message='Please enter a valid data in format yyyy-mm-dd', icon='error')
 
     def select_files(self):
         """
@@ -219,8 +222,8 @@ class O2ebGui(tk.Tk):
             filetypes=filetypes
         )
         if len(self.selected_files) != 0:
-            _text = ', '.join([os.path.basename(x.name) for x in self.selected_files])
-            self.file_folder.set(f"Current folder: {os.path.dirname(self.selected_files[0].name)}")
+            _text = ', '.join([basename(x.name) for x in self.selected_files])
+            self.file_folder.set(f"Current folder: {dirname(self.selected_files[0].name)}")
             self.inp.delete(0, tk.END)
             self.inp.insert(0, _text)
             self.btn_upload.focus()
@@ -243,7 +246,7 @@ class O2ebGui(tk.Tk):
             _text = self.selected_files.name
             self.e_inp.delete(0, tk.END)
             self.e_inp.insert(0, _text)
-            self.btn_export.focus()
+            self.from_inp.focus()
 
     def upload(self):
         if self.inp.get() == '':
@@ -259,8 +262,11 @@ class O2ebGui(tk.Tk):
         _file = self.e_inp.get()
         if _file == '':
             return "Error: no file name has been provided"
-
-        status = export_to_ebird(_file, self.from_inp.get(), self.to_inp.get())
+        _from = self.from_inp.get()
+        _to = self.to_inp.get()
+        if _to == '':
+            _to = None
+        status = export_to_ebird(_file, _from, _to)
         self.export_status.set('File processed' if status is None else f'Error: {status}')
         return status
 

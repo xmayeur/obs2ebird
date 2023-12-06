@@ -16,6 +16,8 @@ import datetime
 import csv
 import sqlite3
 
+__dir__ = dirname(__file__)
+
 ctx = ssl.create_default_context(cafile=certifi.where())
 options.default_ssl_context = ctx
 options.default_user_agent = 'obs2ebird'
@@ -33,7 +35,7 @@ def get_config():
     """
     # read config file
     try:
-        return load(open('config.yml', 'r'), Loader=Loader)
+        return load(open(join(__dir__, 'config.yml'), 'r'), Loader=Loader)
     except IOError:
         print('Config file not found!')
         return None
