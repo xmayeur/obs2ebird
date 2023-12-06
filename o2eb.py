@@ -6,13 +6,15 @@
 "
 "
 """
+import re
 import tkinter as tk
 from tkinter import filedialog as fd
-# from tkinter.messagebox import showinfo
+from tkinter.messagebox import showinfo
 from tkinter import ttk
 from PIL import ImageTk, Image
 import os
-from obs2ebird import import_obs
+from obs2ebird import import_obs, export_to_ebird
+from datetime import date
 
 
 class O2ebGui(tk.Tk):
@@ -107,8 +109,8 @@ class O2ebGui(tk.Tk):
         row += 1
         # Label for eBird.org list file
         self.lbl_list2 = ttk.Label(self.frm,
-                                  text="Enter eBird.org list file or select using folder button",
-                                  foreground='green')
+                                   text="Enter eBird.org list file or select using folder button",
+                                   foreground='green')
         self.lbl_list2.grid(column=0, row=row, sticky=tk.W, padx=50, pady=10)
 
         row += 1
@@ -118,7 +120,6 @@ class O2ebGui(tk.Tk):
         self.e_inp = ttk.Entry(self.frm, textvariable=self.e_file_name, justify=tk.LEFT, width=34)
         self.e_inp.grid(column=0, row=row, sticky=tk.W, padx=50, pady=0)
         self.e_inp.update()
-        self.e_inp.focus()
 
         self.btn_folder2 = ttk.Button(
             self.frm,
@@ -130,7 +131,32 @@ class O2ebGui(tk.Tk):
         self.btn_folder2.grid(column=0, row=row, padx=self.e_inp.winfo_width() - 40)
 
         # Add labels and entries for from/to dates
-        # TODO
+        row += 1
+        # Label for eBird.org list file
+        self.lbl_dates = ttk.Label(self.frm,
+                                   text="From / to date (yyyy-mm-dd)",
+                                   foreground='green')
+        self.lbl_dates.grid(column=0, row=row, sticky=tk.W, padx=50, pady=10)
+
+        row += 1
+        val = (self.register(self.val_date), '%P')
+        inval = (self.register(self.invalid_date),)
+        self.from_date = tk.StringVar()
+        self.from_inp = ttk.Entry(self.frm, textvariable=self.from_date, justify=tk.LEFT, width=10,
+                                  validatecommand=val, validate='focusout', invalidcommand=inval)
+        self.from_inp.grid(column=0, row=row, sticky=tk.W, padx=50, pady=0)
+        self.from_inp.update()
+
+        self.lbl_to = ttk.Label(self.frm,
+                                text="to",
+                                foreground='green')
+        self.lbl_to.grid(column=0, row=row, sticky=tk.W, padx=self.from_inp.winfo_width() + 50, pady=0)
+        self.lbl_to.update()
+        self.to_date = tk.StringVar()
+        self.to_inp = ttk.Entry(self.frm, textvariable=self.to_date, justify=tk.LEFT, width=10,
+                                validatecommand=val, validate='focusout', invalidcommand=inval)
+        self.to_inp.grid(column=0, row=row, sticky=tk.W, padx=170, pady=0)
+        self.to_inp.update()
 
         # create a processing button
         self.btn_export = ttk.Button(self.frm,
@@ -159,6 +185,24 @@ class O2ebGui(tk.Tk):
         factor = w / _img.width if keep_proportion else 1
         _img = _img.resize((w, int(_img.height * factor)), Image.LANCZOS)
         return ImageTk.PhotoImage(_img)
+
+    @staticmethod
+    def val_date(my_date):
+        matches = re.findall(r'(\d{4})-(\d{2})-(\d{2})', my_date, re.DOTALL)
+        if len(matches) != 0:
+            _year, _mm, _dd = matches[0]
+            try:
+                date(int(_year), int(_mm), int(_dd))
+                return True
+            except TypeError:
+                return False
+        return False
+
+    @staticmethod
+    def invalid_date():
+        showinfo(title='Date entry',
+                 message='Please enter a valid data in format yyyy-mm-dd',
+                 icon='info')
 
     def select_files(self):
         """
@@ -212,11 +256,13 @@ class O2ebGui(tk.Tk):
         self.upload_status.set('File(s) processed' if status is None else f'Error: {status}')
 
     def export(self):
-        if self.e_inp.get() == '':
+        _file = self.e_inp.get()
+        if _file == '':
             return "Error: no file name has been provided"
-        else:
-            status = None
+
+        status = export_to_ebird(_file, self.from_inp.get(), self.to_inp.get())
         self.export_status.set('File processed' if status is None else f'Error: {status}')
+        return status
 
 
 def main():

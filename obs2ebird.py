@@ -255,7 +255,7 @@ def export_to_ebird(output_file, start_date, end_date):
     :param output_file: The path to the output file where the eBird data will be exported.
     :param start_date: The start date for querying the database.
     :param end_date: The end date for querying the database.
-    :return: None
+    :return: None|str None if OK, else a status message
 
     This method exports bird observation data from a MySQL database to eBird format.
     The exported data will be written to the specified output file.
@@ -295,8 +295,7 @@ def export_to_ebird(output_file, start_date, end_date):
     sqlEngine, db = db_conn()
     df = query_database(start_date, end_date, sqlEngine, db)
     if len(df) == 0:
-        print('Nothing to export')
-        exit(0)
+        return 'Nothing to export'
 
     grp = prepare_data(df)
     for g in grp:
