@@ -10,3 +10,4 @@ argparse
 geopy
 certifi
 pillow
+pycryptodome

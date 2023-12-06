@@ -7,4 +7,5 @@ sqlite:
   db: observations.sqlite
 
 default:
-  db_dialect: sqlite
+  db_dialect: mysql
+  secrets: secrets.bin
