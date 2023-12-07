@@ -54,8 +54,7 @@ def db_conn():
         host = config['mysql']['host']
         port = config['mysql']['port']
         db = config['mysql']['db']
-        return create_engine('mysql+pymysql://' + user + ':' + pwd + '@' + host + ':' + str(port) + '/' + db,
-                             pool_recycle=3600), db
+        return create_engine(f'mysql+pymysql://{user}:{pwd}@{host}:{port}/{db}', pool_recycle=3600), db
 
 
 def import_obs(input_file, folder='.'):
@@ -108,15 +107,17 @@ def query_database(start_date, end_date, sqlEngine, dbname):
     :return: A Pandas DataFrame containing the queried data.
 
     """
+    quote = '"' if is_sqlite else '`'
     query = (
-        f'select * from "{dbname}" where date >= "{start_date}"'
+        f'select * from {quote}{dbname}{quote} where {quote}date{quote} >= "{start_date}"'
         if end_date is None
-        else f'select * from "{dbname}" where date between "{start_date}" and "{end_date}"'
+        else f'select * from {quote}{dbname}{quote} where {quote}date{quote} between "{start_date}" '
+             f'and "{end_date}"'
     )
     try:
         return pd.read_sql(query, con=sqlEngine)
     except sqlalchemy.exc.OperationalError:
-        print('Cannot connect to MySQL database - check if running')
+        print('Cannot connect to MySQL database - check if running or cannot run query')
         exit(-1)
 
 

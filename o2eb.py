@@ -28,14 +28,26 @@ class O2ebGui(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
+        self.db_in = None
         self.win_width = 1000
         self.win_height = 700
         self.selected_files = []
         self.db = tk.StringVar()
         self.dbname = tk.StringVar()
+        self.sqlite_db = config['sqlite']['db']
+        self.mysql_db = config['mysql']['db']
         self.mysql_host = tk.StringVar()
+        self.mysql_host.set(config['mysql']['host'])
         self.mysql_port = tk.StringVar()
+        self.mysql_port.set(config['mysql']['port'])
+        self.lbl_url = None
+        self.in_url = None
+        self.lbl_port = None
+        self.in_port = None
+        self.option_row = 0
+
         self.choice = tk.StringVar()
+        self.choice.set(config['default']['db_dialect'])
         self.top = None
 
         self.title("Observation to eBird list conversion")
@@ -49,6 +61,13 @@ class O2ebGui(tk.Tk):
                              padding=0)
         self.frm.grid_propagate(False)
         self.frm.grid()
+
+        # Define menus for settings editing
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
+        self.main_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label='Edit', menu=self.main_menu)
+        self.main_menu.add_command(label="Settings", command=self.settings)
 
         row = 0
         # set an image on the top of the frame
@@ -177,9 +196,6 @@ class O2ebGui(tk.Tk):
                                      command=self.export)
         self.btn_export.grid(column=0, row=row, sticky=tk.E)
 
-        # self.btn_quit = ttk.Button(self.frm, text="Quit", command=self.destroy)
-        # self.btn_quit.grid(column=1, row=3)
-
         row += 1
         # status label
         self.export_status = tk.StringVar()
@@ -187,11 +203,6 @@ class O2ebGui(tk.Tk):
         self.style.configure('Status.TLabel', foreground='green')
         self.lbl_export_status = ttk.Label(self.frm, textvariable=self.export_status, style='Status.TLabel')
         self.lbl_export_status.grid(column=0, row=row, sticky=tk.E, padx=0, pady=0)
-
-        # create a button to modify settings
-        row += 2
-        self.btn_settings = ttk.Button(self.frm, text="Settings", command=self.settings)
-        self.btn_settings.grid(column=0, row=row, sticky=tk.E)
 
     def settings(self):
         """
@@ -213,13 +224,14 @@ class O2ebGui(tk.Tk):
         """
         # create top window
         self.top = tk.Toplevel(self.frm)
-        top_width = 400
-        top_height = 300
+        top_width = 520
+        top_height = 230
         self.top.geometry(f"{top_width}x{top_height}")
+        self.top.grid_propagate(True)
 
         row = 0
         lbl1 = ttk.Label(self.top, text='Database', foreground='green')
-        lbl1.grid(row=row, column=0, sticky=tk.W, padx=20, pady=10)
+        lbl1.grid(row=row, sticky=tk.W, padx=20, pady=10)
         row += 1
         rb_sqlite = ttk.Radiobutton(self.top, text='sqlite', variable=self.choice,
                                     value='sqlite', command=self.db_selected)
@@ -228,25 +240,43 @@ class O2ebGui(tk.Tk):
         rb_sqlite.grid(row=row, sticky=tk.W, padx=20)
         row += 1
         rb_mysql.grid(row=row, sticky=tk.W, padx=20)
-        if config['default']['db_dialect'] == 'sqlite':
-            rb_sqlite.invoke()
-        else:
-            rb_mysql.invoke()
-        self.dbname.set(config[self.db.get()]['db'])
 
         row += 2
         lbl2 = ttk.Label(self.top, text='Name of the database:', foreground='green')
         lbl2.grid(row=row, sticky=tk.W, padx=20)
+        row += 1
+
+        self.db_in = ttk.Entry(self.top, textvariable=self.dbname, justify=tk.LEFT, width=50)
+        self.db_in.bind("<FocusOut>", self.set_dbname)
+        self.db_in.grid(row=row, padx=20)
+        self.db_in.update()
 
         row += 1
-        lbl_url = ttk.Label(self.top, text="host url", foreground='green')
-        in_url = ttk.Entry(self.top, textvariable=self.mysql_host, justify=tk.LEFT, width=15)
-        # TO DO add widget to the class, and make them visible or invisible according to db choice
-
+        self.option_row = row
+        self.lbl_url = ttk.Label(self.top, text="host url", foreground='green')
+        self.lbl_url.grid(row=row, padx=20, sticky=tk.W)
+        self.lbl_url.update()
+        self.in_url = ttk.Entry(self.top, textvariable=self.mysql_host, justify=tk.LEFT, width=15)
+        self.in_url.grid(row=row, sticky=tk.W, padx=20 + self.lbl_url.winfo_width())
         row += 1
-        db_in = ttk.Entry(self.top, textvariable=self.dbname, justify=tk.LEFT, width=50)
-        db_in.grid(row=row, padx=20)
-        db_in.update()
+        self.lbl_port = ttk.Label(self.top, text="port     ", foreground='green')
+        self.lbl_port.grid(row=row, padx=20, sticky=tk.W)
+        self.lbl_port.update()
+        self.in_port = ttk.Entry(self.top, textvariable=self.mysql_port, justify=tk.LEFT, width=15)
+        self.in_port.grid(row=row, sticky=tk.W, padx=20 + self.lbl_port.winfo_width())
+
+        if config['default']['db_dialect'] == 'sqlite':
+            self.dbname.set(self.sqlite_db)
+            rb_sqlite.invoke()
+        else:
+            self.dbname.set(self.mysql_db)
+            rb_mysql.invoke()
+
+        if config['default']['db_dialect'] == 'sqlite':
+            self.lbl_url.grid_forget()
+            self.lbl_port.grid_forget()
+            self.in_port.grid_forget()
+            self.in_url.grid_forget()
 
         row += 1
         btn_cancel = ttk.Button(self.top, text='Cancel', command=self.top.withdraw)
@@ -255,21 +285,43 @@ class O2ebGui(tk.Tk):
         ttk.Button(self.top, text='Save', command=self.save_config).grid(row=row, sticky=tk.E,
                                                                          padx=btn_cancel.winfo_width() + 20)
 
+    def set_dbname(self, event):
+        selection = self.choice.get()
+        if selection == 'sqlite':
+            self.sqlite_db = self.db_in.get()
+        else:
+            self.mysql_db = self.db_in.get()
+            
     def save_config(self):
+        global config
         _config = {
             "mysql": {
                 "host": self.mysql_host.get(),
                 "port": self.mysql_port.get(),
-                "db": self.dbname.get()
+                "db": self.mysql_db
             },
-            "sqlite": {"db": self.dbname.get()},
+            "sqlite": {"db": self.sqlite_db},
             "default": {"db_dialect": self.db.get()}
         }
         write_config_file(_config)
+        config = _config.copy()
         self.top.withdraw()
 
     def db_selected(self):
-        self.db.set(self.choice.get())
+        selection = self.choice.get()
+        self.db.set(selection)
+        if selection == 'sqlite':
+            self.lbl_url.grid_forget()
+            self.lbl_port.grid_forget()
+            self.in_port.grid_forget()
+            self.in_url.grid_forget()
+            self.dbname.set(self.sqlite_db)
+        else:
+            self.lbl_url.grid(row=self.option_row, padx=20, sticky=tk.W)
+            self.in_url.grid(row=self.option_row, sticky=tk.W, padx=20 + self.lbl_url.winfo_width())
+            self.lbl_port.grid(row=self.option_row+1, padx=20, sticky=tk.W)
+            self.in_port.grid(row=self.option_row+1, sticky=tk.W, padx=20 + self.lbl_port.winfo_width())
+            self.dbname.set(self.mysql_db)
 
     @staticmethod
     def get_image(image_path: str, size=tuple(), keep_proportion=True):
