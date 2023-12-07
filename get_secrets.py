@@ -93,7 +93,7 @@ def get_secret(key: str, base_url='', token='', cert="root_ca.pem") -> tuple:
     headers = {"X-Vault-Token": token}
     uri = "/v1/secret/data/"
     url = f"{base_url}{uri}{key}"
-    resp = requests.get(url, headers=headers, verify=cert)
+    resp = requests.get(url, headers=headers, verify=join(getenv('HOME'), '.ssl', cert))
     if resp.status_code == 200:
         secret = resp.json()["data"]["data"]
         for username, password in secret.items():

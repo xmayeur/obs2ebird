@@ -1,7 +1,9 @@
  #!/bin/sh
+ rm -fr ./dist ./build
  pyinstaller --onedir --windowed \
  --add-data './images/background.jpg:images' \
  --add-data './images/folder.png:images' \
+ --add-data './root_ca.pem:.' \
  --noconfirm \
  --icon images/bird.png \
  --collect-submodules  './obs2ebird.py' \
