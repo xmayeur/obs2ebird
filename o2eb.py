@@ -93,8 +93,6 @@ class O2ebGui(tk.Tk):
         self.inp.update()
         self.inp.focus()
 
-        # validatecommand=val('%P', validate='focusout')
-
         # define a button to select files to import, with a folder icon
         _img = self.get_image('./images/folder.png', (30, 30), True)
         self.btn_folder = ttk.Button(

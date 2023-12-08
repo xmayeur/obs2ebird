@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlalchemy.exc
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+
 import warnings
 
 from glob import glob
@@ -20,6 +21,7 @@ import sqlite3
 from get_config import get_config
 
 config = get_config()
+error = None
 
 __dir__ = dirname(__file__)
 
@@ -30,8 +32,6 @@ geolocator = Nominatim(scheme='http')
 args = None
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
-
 is_sqlite = (config['default']['db_dialect'] == 'sqlite')
 
 
@@ -42,19 +42,24 @@ def db_conn():
     :return: A SQLAlchemy engine connected to the MySQL database.
     """
     db = None
+
     if is_sqlite:
         try:
             db = config['sqlite']['db']
             return sqlite3.connect(db), basename(db).split('.')[0]
         except sqlite3.OperationalError:
             print(f'Cannot open database "{db}"')
+            return None, None
     else:
-        from get_secrets import get_secret
-        user, pwd = get_secret('comptes')
-        host = config['mysql']['host']
-        port = config['mysql']['port']
-        db = config['mysql']['db']
-        return create_engine(f'mysql+pymysql://{user}:{pwd}@{host}:{port}/{db}', pool_recycle=3600), db
+        try:
+            from get_secrets import get_secret
+            user, pwd = get_secret('comptes')
+            host = config['mysql']['host']
+            port = config['mysql']['port']
+            db = config['mysql']['db']
+            return create_engine(f'mysql+pymysql://{user}:{pwd}@{host}:{port}/{db}', pool_recycle=3600), db
+        except:
+            return None, None
 
 
 def import_obs(input_file, folder='.'):
@@ -81,16 +86,21 @@ def import_obs(input_file, folder='.'):
 
     # and save to mySQL db
     sqlEngine, db = db_conn()
+    if db is None:
+        return "Error in creating the database connection"
     try:
         if is_sqlite:
             d.to_sql(name=db, con=sqlEngine, if_exists='replace')
             sqlEngine.commit()
         else:
             with sqlEngine.begin() as cnx:
-                d.to_sql(name=db, con=cnx, if_exists='replace')
-            # with sqlEngine.begin() as cnx:
-            #     sql = f"REPLACE INTO {config['mysql']['db']} SELECT * FROM temp_table"
-            #     cnx.execute(sql)
+                if 'local x' not in d:
+                    d['local x'] = ''
+                    d['local y'] = ''
+                d.to_sql(name="temp_table", con=cnx, if_exists='replace')
+                sql = f"REPLACE INTO `{config['mysql']['db']}` SELECT * FROM `temp_table`"
+                cnx.execute(text(sql))
+        return None
 
     except sqlalchemy.exc.OperationalError:
         return 'Cannot connect to database - check if running'
@@ -118,7 +128,7 @@ def query_database(start_date, end_date, sqlEngine, dbname):
         return pd.read_sql(query, con=sqlEngine)
     except sqlalchemy.exc.OperationalError:
         print('Cannot connect to MySQL database - check if running or cannot run query')
-        exit(-1)
+        return pd.DataFrame()
 
 
 def prepare_data(df):
@@ -286,7 +296,7 @@ def export_to_ebird(output_file, start_date, end_date):
     sqlEngine, db = db_conn()
     df = query_database(start_date, end_date, sqlEngine, db)
     if len(df) == 0:
-        return 'Nothing to export'
+        return 'Nothing to export, check if database is running!'
 
     grp = prepare_data(df)
     for g in grp:
