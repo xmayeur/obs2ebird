@@ -29,24 +29,24 @@ jobs:
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - job: macos
-   pool:
-     vmImage: macOS-latest
-   steps:
-   - script: |
-       echo Add other tasks to build, test, and deploy your project.
-       echo See https://aka.ms/yaml
-       pip install pyinstaller
-       pip install -r requirements.txt
-       ./build.sh
-       rm -fr dist/o2eb/_internal
-     displayName: 'MacOS obs2eBird build script'
-   - publish: $(System.DefaultWorkingDirectory)/dist/
-     artifact: o2eb.app
+    pool:
+       vmImage: macOS-latest
+    steps:
+     - script: |
+         echo Add other tasks to build, test, and deploy your project.
+         echo See https://aka.ms/yaml
+         pip install pyinstaller
+         pip install -r requirements.txt
+         ./build.sh
+         rm -fr dist/o2eb/_internal
+       displayName: 'MacOS obs2eBird build script'
+     - publish: $(System.DefaultWorkingDirectory)/dist/
+       artifact: o2eb.app
 
-   - job: windows
-     pool:
+  - job: windows
+    pool:
        vmImage: windows-latest
-     steps:
+    steps:
      - script: |
          echo Add other tasks to build, test, and deploy your project.
          echo See https://aka.ms/yaml
