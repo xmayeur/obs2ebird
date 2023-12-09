@@ -19,11 +19,11 @@ jobs:
         displayName: 'Linux obs2eBird build script'
       - publish: $(System.DefaultWorkingDirectory)/dist
         artifact: Linux
-#      - task: CopyFiles@2
-#        inputs:
-#          SourceFolder: $(System.DefaultWorkingDirectory)/dist
-#          Contents: 'o2eb_linux_x64'
-#          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
+          Contents: 'o2eb_linux_x64'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: release'
         inputs:
@@ -68,11 +68,11 @@ jobs:
         displayName: 'MacOS obs2eBird build script'
       - publish: $(System.DefaultWorkingDirectory)/dist
         artifact: MacOS
-#      - task: CopyFiles@2
-#        inputs:
-#          SourceFolder: $(System.DefaultWorkingDirectory)/dist/
-#          Contents: 'o2eb_macos_x86.zip'
-#          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: '$(System.DefaultWorkingDirectory)/dist/'
+          Contents: 'o2eb_macos_x86.zip'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: release'
         inputs:
@@ -113,12 +113,12 @@ jobs:
           ren dist\o2eb.exe dist\o2eb_win_x64.exe
         displayName: 'Win obs2eBird build script'
       - publish: $(System.DefaultWorkingDirectory)/dist
-        artifact: Windows
-#      - task: CopyFiles@2
-#        inputs:
-#          SourceFolder: $(System.DefaultWorkingDirectory)/dist
-#          Contents: 'o2eb_win_x64.exe'
-#          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+        artifact: 'Windows'
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
+          Contents: 'o2eb_win_x64.exe'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: release'
         inputs:
