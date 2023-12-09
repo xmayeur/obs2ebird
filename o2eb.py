@@ -13,7 +13,7 @@ from tkinter.messagebox import showinfo
 from tkinter import ttk
 from PIL import ImageTk, Image
 from os.path import dirname, basename, join, abspath
-from os import getcwd
+from os import getcwd, getenv
 from obs2ebird import import_obs, export_to_ebird
 from datetime import date
 from get_config import get_config, write_config_file
@@ -194,6 +194,7 @@ class O2ebGui(tk.Tk):
         # define an input field to capture observation file to export
         # val = self.register(self.check_files_exist)
         self.e_file_name = tk.StringVar()
+        self.e_file_name.set(join(getenv('HOME'),'eBird_import.csv'))
         self.e_inp = ttk.Entry(self.frm, textvariable=self.e_file_name, justify=tk.LEFT, width=34)
         self.e_inp.grid(column=0, row=row, sticky=tk.W, padx=50, pady=0)
         self.e_inp.update()
