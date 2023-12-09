@@ -23,5 +23,5 @@ steps:
      
   displayName: 'obs2eBird build script'
 
-- publish: $(System.DefaultWorkingDirectory)/
-  artifact: ./dist/o2eb/o2eb
+- publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+  artifact: o2eb
