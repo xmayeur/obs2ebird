@@ -13,12 +13,10 @@ jobs:
     steps:
       - script: |
           echo 'building'
+          pip install pyinstaller
+          pip install -r requirements.txt
+          ./build_linux.sh
           mv dist/o2eb dist/o2eb_linux_x64
-
-        #          pip install pyinstaller
-        #          pip install -r requirements.txt
-        #          ./build_linux.sh
-
         displayName: 'Linux obs2eBird build script'
       #      - publish: $(System.DefaultWorkingDirectory)/dist
       #        artifact: Linux
@@ -61,13 +59,13 @@ jobs:
       vmImage: macOS-latest
     steps:
       - script: |
+          sudo apt update
+          sudo apt install python3
+          pip install pyinstaller
+          pip install -r requirements.txt
+          ./build.sh
           rm -fr dist/o2eb
           zip -r dist/o2eb_macos_x86.zip . -i dist/o2eb.app
-        #          sudo apt update
-        #          sudo apt install python3
-        #          pip install pyinstaller
-        #          pip install -r requirements.txt
-        #          ./build.sh
 
         displayName: 'MacOS obs2eBird build script'
       #      - publish: $(System.DefaultWorkingDirectory)/dist
@@ -111,10 +109,10 @@ jobs:
       vmImage: windows-latest
     steps:
       - script: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+          build.bat
           mv dist/o2eb.exe dist/o2eb_win_x64.exe
-        #          pip install pyinstaller
-        #          pip install -r requirements.txt
-        #          build.bat
 
         displayName: 'Win obs2eBird build script'
       #      - publish: $(System.DefaultWorkingDirectory)/dist
