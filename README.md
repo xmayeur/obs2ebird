@@ -10,6 +10,7 @@ Start the GUI by executing the command:
 
 ![](images/main_window.png)
 
+
 ## Export from observation.org
 
 - Lists from Observation.org need first to be downloaded in .CSV format.
