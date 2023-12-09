@@ -13,10 +13,11 @@ jobs:
     steps:
       - script: |
           echo 'building'
+          mv dist/o2eb dist/o2eb_linux_x64
         #          pip install pyinstaller
         #          pip install -r requirements.txt
         #          ./build_linux.sh
-          mv dist/o2eb dist/o2eb_linux_x64
+
         displayName: 'Linux obs2eBird build script'
       #      - publish: $(System.DefaultWorkingDirectory)/dist
       #        artifact: Linux
