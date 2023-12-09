@@ -18,10 +18,10 @@ jobs:
         pip install -r requirements.txt
         ./build.sh
         rm -fr dist/o2eb/_internal
-        mv dist/o2eb/o2ob /dist/o2eb/o2eb_linux_x64
+        mv dist/o2eb/o2eb /dist/o2eb/o2eb_linux_x64
       displayName: 'Linux obs2eBird build script'
-    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
-      artifact: o2eb_linux_x64
+#    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+#      artifact: o2eb_linux_x64
     - task: CopyFiles@2
       inputs:
         SourceFolder: $(System.DefaultWorkingDirectory)/dist/o2eb/
@@ -40,8 +40,13 @@ jobs:
          ./build.sh
          rm -fr dist/o2eb/_internal
        displayName: 'MacOS obs2eBird build script'
-     - publish: $(System.DefaultWorkingDirectory)/dist/
-       artifact: o2eb.app
+#     - publish: $(System.DefaultWorkingDirectory)/dist/
+#       artifact: o2eb.app
+     - task: CopyFiles@2
+       inputs:
+         SourceFolder: $(System.DefaultWorkingDirectory)/dist/o2eb/
+         Contents: '**'
+         TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - job: windows
     pool:
@@ -55,8 +60,13 @@ jobs:
          build.bat
          RD /S /Q dist/o2eb/_internal
        displayName: 'Win obs2eBird build script'
-     - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
-       artifact: o2eb_win_x64.exe
+#     - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+#       artifact: o2eb_win_x64.exe
+     - task: CopyFiles@2
+       inputs:
+         SourceFolder: $(System.DefaultWorkingDirectory)/dist/o2eb/
+         Contents: '**'
+         TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - job: github_release
     steps:
@@ -85,5 +95,5 @@ jobs:
          title: 'v0.2'
 #         tag: '$(tag)'
 #         title: 'v$(tag)'
-         assets: '$(Build.ArtifactStagingDirectory)\release\**'
+         assets: '$(Build.ArtifactStagingDirectory)\*'
          addChangeLog: false
