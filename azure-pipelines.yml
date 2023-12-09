@@ -60,10 +60,10 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
           ./build.sh
-          rm -fr dist/o2eb
+          zip -r  dist/o2eb_macos_x86.zip dist/o2eb.app
         displayName: 'MacOS obs2eBird build script'
-      - publish: $(System.DefaultWorkingDirectory)/dist/
-        artifact: o2eb.app
+      - publish: $(System.DefaultWorkingDirectory)/dist
+        artifact: o2eb_macos_x86.zip
       - task: CopyFiles@2
         inputs:
           SourceFolder: $(System.DefaultWorkingDirectory)/dist/
