@@ -307,6 +307,7 @@ class O2ebGui(tk.Tk):
         self.mysql_db = config['mysql']['db']
         self.mysql_host.set(config['mysql']['host'])
         self.mysql_port.set(config['mysql']['port'])
+        self.choice.set(config['default']['db_dialect'])
         self.top.withdraw()
 
     def db_selected(self):

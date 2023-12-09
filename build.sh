@@ -7,4 +7,5 @@
  --icon images/bird.png \
  --collect-submodules  './obs2ebird.py' \
  --collect-submodules  './get_secrets.py' \
+ --hidden-import='PIL._tkinter_finder' \
  o2eb.py

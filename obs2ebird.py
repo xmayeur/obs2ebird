@@ -102,8 +102,9 @@ def import_obs(input_file, folder='.'):
                     d['local y'] = ''
                 # d.to_sql(name=config['mysql']['db'], con=cnx, if_exists='replace')
                 d.to_sql(name='temp_table', con=cnx, if_exists='replace')
-                sql = f"REPLACE INTO `{config['mysql']['db']}` SELECT * FROM `temp_table`"
-                cnx.execute(text(sql))
+
+                cnx.execute(text(f"REPLACE INTO `{config['mysql']['db']}` SELECT * FROM `temp_table`"))
+                cnx.execute(text(f"DROP TABLE IF EXISTS `temp_table`"))
         return None
 
     except sqlalchemy.exc.OperationalError:
