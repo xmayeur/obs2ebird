@@ -5,23 +5,43 @@
 
 trigger:
 - master
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-    sudo apt update
-    sudo apt install python3
-    pip install pyinstaller
-    pip install -r requirements.txt
-    ./build.sh
-     
-  displayName: 'obs2eBird build script'
-
-- publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
-  artifact: o2eb
+jobs:
+  - job: linux
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - script: |
+        echo Add other tasks to build, test, and deploy your project.
+        echo See https://aka.ms/yaml
+        pip install pyinstaller
+        pip install -r requirements.txt
+        ./build.sh
+      displayName: 'Linux obs2eBird build script'
+    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+      artifact: o2eb_linux_x64
+  - job: macos
+    pool:
+      vmImage: macOS-latest
+    steps:
+    - script: |
+        echo Add other tasks to build, test, and deploy your project.
+        echo See https://aka.ms/yaml
+        pip install pyinstaller
+        pip install -r requirements.txt
+        ./build.sh
+      displayName: 'Linux obs2eBird build script'
+    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+      artifact: o2eb.app
+  - job: windows
+    pool:
+      vmImage: windows-latest
+    steps:
+    - script: |
+        echo Add other tasks to build, test, and deploy your project.
+        echo See https://aka.ms/yaml
+        pip install pyinstaller
+        pip install -r requirements.txt
+        ./build.sh
+      displayName: 'Linux obs2eBird build script'
+    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+      artifact: o2eb_win_x64.exe
