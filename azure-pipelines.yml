@@ -59,22 +59,23 @@ jobs:
        artifact: o2eb_win_x64.exe
 
   - job: github_release
+    steps:
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: release'
         inputs:
          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
          ArtifactName: 'release'
          publishLocation: 'Container'
-     - task: PowerShell@2
-       displayName: 'Get latest SHA commmit from repo'
-       inputs:
-         targetType: 'inline'
-         script: |
+      - task: PowerShell@2
+        displayName: 'Get latest SHA commmit from repo'
+        inputs:
+          targetType: 'inline'
+          script: |
            $commits = Invoke-RestMethod -Method GET -Uri "https://api.github.com/repos/xmayeur/obs2ebird/commits"
            $sha = $commits[0].sha
            Write-Host "##vso[task.setvariable variable=sha;]$sha"
-     - task: GitHubRelease@1
-       inputs:
+      - task: GitHubRelease@1
+        inputs:
          gitHubConnection: 'github.com_xmayeur'
          repositoryName: 'xmayeur/obs2ebird'
          action: 'create'
