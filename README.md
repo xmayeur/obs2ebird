@@ -8,7 +8,7 @@ Start the GUI by executing the command:
     python o2eb.py
 
 
-![](images/main_window.png)
+![](./images/main_window.png)
 
 
 ## Export from observation.org
