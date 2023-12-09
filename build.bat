@@ -1,5 +1,5 @@
  venv\scripts\activate
- pyinstaller --onedir --windowed ^
+ pyinstaller --onefile ^
  --add-data "images\background.jpg:images" ^
  --add-data "images\folder.png:images" ^
  --noconfirm ^
