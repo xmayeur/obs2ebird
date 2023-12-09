@@ -18,7 +18,7 @@ jobs:
           mv dist/o2eb dist/o2eb_linux_x64
         displayName: 'Linux obs2eBird build script'
       - publish: $(System.DefaultWorkingDirectory)/dist
-        artifact: release
+        artifact: Linux
 #      - task: CopyFiles@2
 #        inputs:
 #          SourceFolder: $(System.DefaultWorkingDirectory)/dist
@@ -28,7 +28,7 @@ jobs:
         displayName: 'Publish Artifact: release'
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'release'
+          ArtifactName: 'Linux'
           publishLocation: 'Container'
       - task: PowerShell@2
         displayName: 'Get latest SHA commmit from repo'
@@ -50,6 +50,7 @@ jobs:
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
           assets: '$(Build.ArtifactStagingDirectory)/*'
+          assetUploadMode: 'replace'
           addChangeLog: false
 
   - job: macos
@@ -66,7 +67,7 @@ jobs:
           zip -r dist/o2eb_macos_x86.zip . -i dist/o2eb.app
         displayName: 'MacOS obs2eBird build script'
       - publish: $(System.DefaultWorkingDirectory)/dist
-        artifact: release
+        artifact: MacOS
 #      - task: CopyFiles@2
 #        inputs:
 #          SourceFolder: $(System.DefaultWorkingDirectory)/dist/
@@ -76,7 +77,7 @@ jobs:
         displayName: 'Publish Artifact: release'
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'release'
+          ArtifactName: 'MacOs'
           publishLocation: 'Container'
       - task: PowerShell@2
         displayName: 'Get latest SHA commmit from repo'
@@ -98,6 +99,7 @@ jobs:
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
           assets: '$(Build.ArtifactStagingDirectory)/*'
+          assetUploadMode: 'replace'
           addChangeLog: false
 
   - job: windows
@@ -111,7 +113,7 @@ jobs:
           ren dist\o2eb.exe dist\o2eb_win_x64.exe
         displayName: 'Win obs2eBird build script'
       - publish: $(System.DefaultWorkingDirectory)/dist
-        artifact: release
+        artifact: Windows
 #      - task: CopyFiles@2
 #        inputs:
 #          SourceFolder: $(System.DefaultWorkingDirectory)/dist
@@ -121,7 +123,7 @@ jobs:
         displayName: 'Publish Artifact: release'
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'release'
+          ArtifactName: 'Windows'
           publishLocation: 'Container'
       - task: PowerShell@2
         displayName: 'Get latest SHA commmit from repo'
@@ -142,6 +144,7 @@ jobs:
           title: 'v0.2'
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
+          assetUploadMode: 'replace'
           assets: '$(Build.ArtifactStagingDirectory)/*'
           addChangeLog: false
 
