@@ -19,6 +19,7 @@ jobs:
       displayName: 'Linux obs2eBird build script'
     - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
       artifact: o2eb_linux_x64
+
   - job: macos
     pool:
       vmImage: macOS-latest
@@ -32,6 +33,7 @@ jobs:
       displayName: 'MacOS obs2eBird build script'
     - publish: $(System.DefaultWorkingDirectory)/dist/
       artifact: o2eb.app
+
   - job: windows
     pool:
       vmImage: windows-latest
