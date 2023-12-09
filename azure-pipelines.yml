@@ -23,7 +23,7 @@ jobs:
     - task: CopyFiles@2
       inputs:
         SourceFolder: $(System.DefaultWorkingDirectory)/dist/o2eb/
-        Contents: o2eb
+        Contents: '**'
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: release'
@@ -50,7 +50,7 @@ jobs:
         title: 'v$(tag)'
         assets: '$(Build.ArtifactStagingDirectory)\release\*'
         addChangeLog: false
-#
+
 #  - job: macos
 #    pool:
 #      vmImage: macOS-latest
