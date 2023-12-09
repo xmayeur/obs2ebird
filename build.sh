@@ -1,4 +1,5 @@
  #!/bin/sh
+ source venv/bin/activate
  rm -fr ./dist ./build
  pyinstaller --onedir --windowed \
  --add-data './images/background.jpg:images' \

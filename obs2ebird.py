@@ -1,11 +1,10 @@
 import pandas as pd
 import sqlalchemy.exc
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 
 import warnings
 
 from glob import glob
-from sys import exit
 from os.path import basename, dirname, join
 
 import argparse
@@ -32,7 +31,6 @@ geolocator = Nominatim(scheme='http')
 args = None
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
-is_sqlite = (config['default']['db_dialect'] == 'sqlite')
 
 
 def db_conn():
@@ -43,7 +41,7 @@ def db_conn():
     """
     db = None
 
-    if is_sqlite:
+    if config['default']['db_dialect'] == 'sqlite':
         try:
             db = config['sqlite']['db']
             return sqlite3.connect(db), basename(db).split('.')[0]
@@ -89,22 +87,15 @@ def import_obs(input_file, folder='.'):
     if db is None:
         return "Error in creating the database connection"
     try:
-        if is_sqlite:
+        if config['default']['db_dialect'] == 'sqlite':
             d.to_sql(name=db, con=sqlEngine, if_exists='replace')
             sqlEngine.commit()
         else:
             with sqlEngine.begin() as cnx:
-                cnx.execute(text(f"CREATE TABLE IF NOT EXISTS `{config['mysql']['db']}`"))
-                cnx.execute(text(f"DROP TABLE IF EXISTS `temp_table`"))
-
                 if 'local x' not in d:
                     d['local x'] = ''
                     d['local y'] = ''
-                # d.to_sql(name=config['mysql']['db'], con=cnx, if_exists='replace')
-                d.to_sql(name='temp_table', con=cnx, if_exists='replace')
-
-                cnx.execute(text(f"REPLACE INTO `{config['mysql']['db']}` SELECT * FROM `temp_table`"))
-                cnx.execute(text(f"DROP TABLE IF EXISTS `temp_table`"))
+                d.to_sql(name=config['mysql']['db'], con=cnx, if_exists='replace')
         return None
 
     except sqlalchemy.exc.OperationalError:
@@ -122,7 +113,7 @@ def query_database(start_date, end_date, sqlEngine, dbname):
     :return: A Pandas DataFrame containing the queried data.
 
     """
-    quote = '"' if is_sqlite else '`'
+    quote = '"' if (config['default']['db_dialect'] == 'sqlite') else '`'
     query = (
         f'select * from {quote}{dbname}{quote} where {quote}date{quote} >= "{start_date}"'
         if end_date is None

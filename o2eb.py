@@ -24,11 +24,69 @@ __dir__ = dirname(__file__)
 
 
 class O2ebGui(tk.Tk):
-
+    """
+    O2ebGui represents a GUI application for converting observation files to eBird list files
+    """
     def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
+        # variable for main window management
+        self.frm = None
+        self.style = None
+        self.selected_files = None
+        self.win_height = None
+        self.win_width = None
+        self.export_status = None
+        self.btn_export = None
+        self.to_inp = None
+        self.to_date = None
+        self.lbl_to = None
+        self.from_inp = None
+        self.from_date = None
+        self.lbl_dates = None
+        self.btn_folder2 = None
+        self.e_inp = None
+        self.e_file_name = None
+        self.lbl_list2 = None
+        self.lbl_upload_status = None
+        self.upload_status = None
+        self.btn_upload = None
+        self.lbl_folder = None
+        self.btn_folder = None
+        self.file_folder = None
+        self.inp = None
+        self.lbl_export_status = None
+        self.file_names = None
+        self.lbl_list = None
+        self.lbl_img = None
+        self.img = None
+        self.main_menu = None
+        self.menu = None
+
+        # Variable for settings management
+        self.top = None
+        self.choice = None
         self.db_in = None
+        self.mysql_db = None
+        self.sqlite_db = None
+        self.mysql_port = None
+        self.mysql_host = None
+        self.dbname = None
+        self.db = None
+
+        self.lbl_url = None
+        self.in_url = None
+        self.lbl_port = None
+        self.in_port = None
+        self.option_row = 0
+        self.top = None
+
+        # Initialize the GUI
+        self.init_vars()
+        self.init_config()
+        self.init_ui()
+
+    def init_vars(self):
         self.win_width = 1000
         self.win_height = 700
         self.selected_files = []
@@ -36,39 +94,29 @@ class O2ebGui(tk.Tk):
         self.dbname = tk.StringVar()
         self.mysql_host = tk.StringVar()
         self.mysql_port = tk.StringVar()
+        self.choice = tk.StringVar()
+
+    def init_config(self):
         self.sqlite_db = config['sqlite']['db']
         self.mysql_db = config['mysql']['db']
         self.mysql_host.set(config['mysql']['host'])
         self.mysql_port.set(config['mysql']['port'])
-        self.lbl_url = None
-        self.in_url = None
-        self.lbl_port = None
-        self.in_port = None
-        self.option_row = 0
-
-        self.choice = tk.StringVar()
         self.choice.set(config['default']['db_dialect'])
-        self.top = None
 
+    def init_ui(self):
         self.title("Observation to eBird list conversion")
         self.geometry(f"{self.win_width}x{self.win_height}")
         self.style = ttk.Style()
+        self.frm = self.create_frame()
+        self.create_menu()
+        self.create_main_window()
 
-        # Define the frame
-        self.frm = ttk.Frame(self,
-                             width=self.win_width,
-                             height=self.win_height,
-                             padding=0)
-        self.frm.grid_propagate(False)
-        self.frm.grid()
+    def create_main_window(self):
+        """
+        Creates the main window of the GUI.
 
-        # Define menus for settings editing
-        self.menu = tk.Menu(self)
-        self.config(menu=self.menu)
-        self.main_menu = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label='Edit', menu=self.main_menu)
-        self.main_menu.add_command(label="Settings", command=self.settings)
-
+        :return: None
+        """
         row = 0
         # set an image on the top of the frame
         self.img = self.get_image('./images/background.jpg', (self.win_width, self.win_height), True)
@@ -99,7 +147,7 @@ class O2ebGui(tk.Tk):
             self.frm,
             width=0,
             image=_img,
-            command=self.select_files
+            command=self.select_files_event
         )
         self.btn_folder.image = _img
         self.btn_folder.grid(column=0, row=row, padx=self.inp.winfo_width() - 40)
@@ -115,7 +163,7 @@ class O2ebGui(tk.Tk):
         # create a processing button
         self.btn_upload = ttk.Button(self.frm,
                                      text="IMPORT LIST(S)",
-                                     command=self.upload)
+                                     command=self.upload_event)
         self.btn_upload.grid(column=0, row=row, sticky=tk.E)
         # self.btn_quit = ttk.Button(self.frm, text="Quit", command=self.destroy)
         # self.btn_quit.grid(column=1, row=3)
@@ -154,7 +202,7 @@ class O2ebGui(tk.Tk):
             self.frm,
             width=0,
             image=_img,
-            command=self.select_file
+            command=self.select_file_event
         )
         self.btn_folder2.image = _img
         self.btn_folder2.grid(column=0, row=row, padx=self.e_inp.winfo_width() - 40)
@@ -168,8 +216,8 @@ class O2ebGui(tk.Tk):
         self.lbl_dates.grid(column=0, row=row, sticky=tk.W, padx=50, pady=10)
 
         row += 1
-        val = (self.register(self.val_date), '%P')
-        inval = (self.register(self.invalid_date),)
+        val = (self.register(self.val_date_event), '%P')
+        inval = (self.register(self.invalid_date_event),)
         self.from_date = tk.StringVar()
         self.from_date.set("2020-01-01")
         self.from_inp = ttk.Entry(self.frm, textvariable=self.from_date, justify=tk.LEFT, width=10,
@@ -191,7 +239,7 @@ class O2ebGui(tk.Tk):
         # create a processing button
         self.btn_export = ttk.Button(self.frm,
                                      text="GENERATE eBIRD FILE",
-                                     command=self.export)
+                                     command=self.export_event)
         self.btn_export.grid(column=0, row=row, sticky=tk.E)
 
         row += 1
@@ -202,8 +250,38 @@ class O2ebGui(tk.Tk):
         self.lbl_export_status = ttk.Label(self.frm, textvariable=self.export_status, style='Status.TLabel')
         self.lbl_export_status.grid(column=0, row=row, sticky=tk.E, padx=0, pady=0)
 
-    def settings(self):
+    def create_frame(self):
         """
+        Create a frame for the O2ebGui class.
+
+        :return: The created frame.
+        :rtype: ttk.Frame
+        """
+        # Define the frame
+        self.frm = ttk.Frame(self,
+                             width=self.win_width,
+                             height=self.win_height,
+                             padding=0)
+        self.frm.grid_propagate(False)
+        self.frm.grid()
+        return self.frm
+
+    def create_menu(self):
+        """
+        Creates a menu for settings editing.
+
+        :return: None
+        """
+        # Define menus for settings editing
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
+        self.main_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label='Edit', menu=self.main_menu)
+        self.main_menu.add_command(label="Settings", command=self.create_settings_popup)
+
+    def create_settings_popup(self):
+        """
+        Method to open a settings window for the application.
 
         Manage the config file data as per:
         mysql:
@@ -217,8 +295,7 @@ class O2ebGui(tk.Tk):
         default:
           db_dialect: [mysql | sqlite]
 
-
-        :return:
+        :return: None
         """
         # create top window
         self.top = tk.Toplevel(self.frm)
@@ -232,9 +309,9 @@ class O2ebGui(tk.Tk):
         lbl1.grid(row=row, sticky=tk.W, padx=20, pady=10)
         row += 1
         rb_sqlite = ttk.Radiobutton(self.top, text='sqlite', variable=self.choice,
-                                    value='sqlite', command=self.db_selected)
+                                    value='sqlite', command=self.db_selected_event)
         rb_mysql = ttk.Radiobutton(self.top, text='mysql', variable=self.choice,
-                                   value='mysql', command=self.db_selected)
+                                   value='mysql', command=self.db_selected_event)
         rb_sqlite.grid(row=row, sticky=tk.W, padx=20)
         row += 1
         rb_mysql.grid(row=row, sticky=tk.W, padx=20)
@@ -245,7 +322,7 @@ class O2ebGui(tk.Tk):
         row += 1
 
         self.db_in = ttk.Entry(self.top, textvariable=self.dbname, justify=tk.LEFT, width=50)
-        self.db_in.bind("<FocusOut>", self.set_dbname)
+        self.db_in.bind("<FocusOut>", self.set_dbname_event)
         self.db_in.grid(row=row, padx=20)
         self.db_in.update()
 
@@ -280,17 +357,47 @@ class O2ebGui(tk.Tk):
         btn_cancel = ttk.Button(self.top, text='Cancel', command=self.top.withdraw)
         btn_cancel.grid(row=row, sticky=tk.E)
         btn_cancel.update()
-        ttk.Button(self.top, text='Save', command=self.save_config).grid(row=row, sticky=tk.E,
-                                                                         padx=btn_cancel.winfo_width() + 20)
+        ttk.Button(self.top, text='Save', command=self.save_config_event).grid(row=row, sticky=tk.E,
+                                                                               padx=btn_cancel.winfo_width() + 20)
 
-    def set_dbname(self, event):
+    @staticmethod
+    def get_image(image_path: str, size=tuple(), keep_proportion=True):
+        """
+        :param image_path: The path of the image file.
+        :param size: The desired size of the image as a tuple of width and height.
+        If not provided, the original size will be maintained.
+        :param keep_proportion: A boolean value indicating whether to keep the image's
+        original aspect ratio when resizing. If True, the width to height ratio will be
+        maintained; otherwise, the image will be stretched to fit the provided size.
+        Default is True.
+        :return: An ImageTk.PhotoImage instance representing the resized image.
+
+        """
+        _img = Image.open(join(__dir__, image_path))
+        w, h = size
+        factor = w / _img.width if keep_proportion else 1
+        _img = _img.resize((w, int(_img.height * factor)), Image.LANCZOS)
+        return ImageTk.PhotoImage(_img)
+
+    def set_dbname_event(self, event):
+        """
+        Sets the database name based on user selection.
+
+        :param event: The event that triggers the method.
+        :return: None
+        """
         selection = self.choice.get()
         if selection == 'sqlite':
             self.sqlite_db = self.db_in.get()
         else:
             self.mysql_db = self.db_in.get()
-            
-    def save_config(self):
+
+    def save_config_event(self):
+        """
+        Save the configuration settings entered by the user.
+
+        :return: None
+        """
         global config
         _config = {
             "mysql": {
@@ -310,7 +417,10 @@ class O2ebGui(tk.Tk):
         self.choice.set(config['default']['db_dialect'])
         self.top.withdraw()
 
-    def db_selected(self):
+    def db_selected_event(self):
+        """
+        :return:
+        """
         selection = self.choice.get()
         self.db.set(selection)
         if selection == 'sqlite':
@@ -322,20 +432,17 @@ class O2ebGui(tk.Tk):
         else:
             self.lbl_url.grid(row=self.option_row, padx=20, sticky=tk.W)
             self.in_url.grid(row=self.option_row, sticky=tk.W, padx=20 + self.lbl_url.winfo_width())
-            self.lbl_port.grid(row=self.option_row+1, padx=20, sticky=tk.W)
-            self.in_port.grid(row=self.option_row+1, sticky=tk.W, padx=20 + self.lbl_port.winfo_width())
+            self.lbl_port.grid(row=self.option_row + 1, padx=20, sticky=tk.W)
+            self.in_port.grid(row=self.option_row + 1, sticky=tk.W, padx=20 + self.lbl_port.winfo_width())
             self.dbname.set(self.mysql_db)
 
     @staticmethod
-    def get_image(image_path: str, size=tuple(), keep_proportion=True):
-        _img = Image.open(join(__dir__, image_path))
-        w, h = size
-        factor = w / _img.width if keep_proportion else 1
-        _img = _img.resize((w, int(_img.height * factor)), Image.LANCZOS)
-        return ImageTk.PhotoImage(_img)
+    def val_date_event(my_date):
+        """Validates a given date.
 
-    @staticmethod
-    def val_date(my_date):
+        :param my_date: The date to validate.
+        :return: True if the date is a valid format (YYYY-MM-DD), False otherwise.
+        """
         matches = re.findall(r'(\d{4})-(\d{2})-(\d{2})', my_date, re.DOTALL)
         if len(matches) != 0:
             _year, _mm, _dd = matches[0]
@@ -347,17 +454,20 @@ class O2ebGui(tk.Tk):
         return False
 
     @staticmethod
-    def invalid_date():
+    def invalid_date_event():
+        """
+        Display an error message for invalid date input
+
+        :return: None
+        """
         showinfo(title='Date entry',
                  message='Please enter a valid data in format yyyy-mm-dd', icon='error')
 
-    def select_files(self):
+    def select_files_event(self):
         """
-        Selects one or more CSV files using a file dialog box.
+        Selects multiple CSV files using a file dialog.
 
-        Returns:
-            None
-
+        :return: None
         """
         filetypes = (('CSV file', '*.csv'),)
         self.selected_files = fd.askopenfiles(
@@ -372,13 +482,10 @@ class O2ebGui(tk.Tk):
             self.inp.insert(0, _text)
             self.btn_upload.focus()
 
-    def select_file(self):
-        """
-        Selects one or more CSV files using a file dialog box.
+    def select_file_event(self):
+        """Select a file using a file dialog and update the input field with the selected file name.
 
-        Returns:
-            None
-
+        :return: None
         """
         filetypes = (('CSV file', '*.csv'),)
         self.selected_files = fd.askopenfile(
@@ -392,7 +499,12 @@ class O2ebGui(tk.Tk):
             self.e_inp.insert(0, _text)
             self.from_inp.focus()
 
-    def upload(self):
+    def upload_event(self):
+        """
+        Uploads file and imports data into eBird.
+
+        :return: Status message indicating success or error
+        """
         if self.inp.get() == '':
             return "Error: no file name has been provided"
 
@@ -402,7 +514,26 @@ class O2ebGui(tk.Tk):
         status = import_obs(self.inp.get(), folder=_folder)
         self.upload_status.set('File(s) processed' if status is None else f'Error: {status}')
 
-    def export(self):
+    def export_event(self):
+        """
+        Export Method
+
+        This method is used to export data from the provided file to eBird.
+
+        Parameters:
+        - _file (str): The name of the file to be exported.
+        - _from (str): The starting date for data export. If not provided, defaults to None.
+        - _to (str): The ending date for data export. If not provided, defaults to None.
+
+        Returns:
+        - status (str or None): If the export is successful, returns None. Otherwise, returns an error message.
+
+        Example Usage:
+        ```python
+        gui = O2ebGui()
+        gui.export()
+        ```
+        """
         _file = self.e_inp.get()
         if _file == '':
             return "Error: no file name has been provided"
