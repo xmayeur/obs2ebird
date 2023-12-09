@@ -94,6 +94,9 @@ def import_obs(input_file, folder='.'):
             sqlEngine.commit()
         else:
             with sqlEngine.begin() as cnx:
+                cnx.execute(text(f"CREATE TABLE `{['mysql']['db']}`IF NOT EXISTS"))
+                cnx.execute(text(f"DROP TABLE `temp_table`IF EXISTS"))
+
                 if 'local x' not in d:
                     d['local x'] = ''
                     d['local y'] = ''

@@ -34,11 +34,11 @@ class O2ebGui(tk.Tk):
         self.selected_files = []
         self.db = tk.StringVar()
         self.dbname = tk.StringVar()
+        self.mysql_host = tk.StringVar()
+        self.mysql_port = tk.StringVar()
         self.sqlite_db = config['sqlite']['db']
         self.mysql_db = config['mysql']['db']
-        self.mysql_host = tk.StringVar()
         self.mysql_host.set(config['mysql']['host'])
-        self.mysql_port = tk.StringVar()
         self.mysql_port.set(config['mysql']['port'])
         self.lbl_url = None
         self.in_url = None
@@ -303,6 +303,10 @@ class O2ebGui(tk.Tk):
         }
         write_config_file(_config)
         config = _config.copy()
+        self.sqlite_db = config['sqlite']['db']
+        self.mysql_db = config['mysql']['db']
+        self.mysql_host.set(config['mysql']['host'])
+        self.mysql_port.set(config['mysql']['port'])
         self.top.withdraw()
 
     def db_selected(self):
