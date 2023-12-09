@@ -29,8 +29,8 @@ jobs:
         pip install pyinstaller
         pip install -r requirements.txt
         ./build.sh
-      displayName: 'Linux obs2eBird build script'
-    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+      displayName: 'MacOS obs2eBird build script'
+    - publish: $(System.DefaultWorkingDirectory)/dist/
       artifact: o2eb.app
   - job: windows
     pool:
@@ -41,7 +41,7 @@ jobs:
         echo See https://aka.ms/yaml
         pip install pyinstaller
         pip install -r requirements.txt
-        ./build.sh
-      displayName: 'Linux obs2eBird build script'
+        build.bat
+      displayName: 'Win obs2eBird build script'
     - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
       artifact: o2eb_win_x64.exe
