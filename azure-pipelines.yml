@@ -20,33 +20,63 @@ jobs:
       displayName: 'Linux obs2eBird build script'
     - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
       artifact: o2eb_linux_x64
-
-  - job: macos
-    pool:
-      vmImage: macOS-latest
-    steps:
-    - script: |
-        echo Add other tasks to build, test, and deploy your project.
-        echo See https://aka.ms/yaml
-        pip install pyinstaller
-        pip install -r requirements.txt
-        ./build.sh
-        rm -fr dist/o2eb/_internal
-      displayName: 'MacOS obs2eBird build script'
-    - publish: $(System.DefaultWorkingDirectory)/dist/
-      artifact: o2eb.app
-
-  - job: windows
-    pool:
-      vmImage: windows-latest
-    steps:
-    - script: |
-        echo Add other tasks to build, test, and deploy your project.
-        echo See https://aka.ms/yaml
-        pip install pyinstaller
-        pip install -r requirements.txt
-        build.bat
-
-      displayName: 'Win obs2eBird build script'
-    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
-      artifact: o2eb_win_x64.exe
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: $(System.DefaultWorkingDirectory)/dist/o2eb/
+        Contents: o2eb
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: release'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'release'
+        publishLocation: 'Container'
+    - task: PowerShell@2
+      displayName: 'Get latest SHA commmit from repo'
+      inputs:
+        targetType: 'inline'
+        script: |
+          $commits = Invoke-RestMethod -Method GET -Uri "https://api.github.com/repos/xmayeur/obs2ebird/commits"
+          $sha = $commits[0].sha
+          Write-Host "##vso[task.setvariable variable=sha;]$sha"
+    - task: GitHubRelease@1
+      inputs:
+        gitHubConnection: 'xmayeur'
+        repositoryName: 'xmayeur/obs2ebird'
+        action: 'create'
+        target: '$(sha)'
+        tagSource: 'userSpecifiedTag'
+        tag: '$(tag)'
+        title: 'v$(tag)'
+        assets: '$(Build.ArtifactStagingDirectory)\release\*'
+        addChangeLog: false
+#
+#  - job: macos
+#    pool:
+#      vmImage: macOS-latest
+#    steps:
+#    - script: |
+#        echo Add other tasks to build, test, and deploy your project.
+#        echo See https://aka.ms/yaml
+#        pip install pyinstaller
+#        pip install -r requirements.txt
+#        ./build.sh
+#        rm -fr dist/o2eb/_internal
+#      displayName: 'MacOS obs2eBird build script'
+#    - publish: $(System.DefaultWorkingDirectory)/dist/
+#      artifact: o2eb.app
+#
+#  - job: windows
+#    pool:
+#      vmImage: windows-latest
+#    steps:
+#    - script: |
+#        echo Add other tasks to build, test, and deploy your project.
+#        echo See https://aka.ms/yaml
+#        pip install pyinstaller
+#        pip install -r requirements.txt
+#        build.bat
+#        RD /S /Q dist/o2eb/_internal
+#      displayName: 'Win obs2eBird build script'
+#    - publish: $(System.DefaultWorkingDirectory)/dist/o2eb/
+#      artifact: o2eb_win_x64.exe
