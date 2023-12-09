@@ -12,13 +12,13 @@ jobs:
       vmImage: ubuntu-latest
     steps:
       - script: |
-          pip install pyinstaller
-          pip install -r requirements.txt
-          ./build_linux.sh
+#          pip install pyinstaller
+#          pip install -r requirements.txt
+#          ./build_linux.sh
           mv dist/o2eb dist/o2eb_linux_x64
         displayName: 'Linux obs2eBird build script'
-      - publish: $(System.DefaultWorkingDirectory)/dist
-        artifact: Linux
+#      - publish: $(System.DefaultWorkingDirectory)/dist
+#        artifact: Linux
       - task: CopyFiles@2
         inputs:
           SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
@@ -58,16 +58,16 @@ jobs:
       vmImage: macOS-latest
     steps:
       - script: |
-          sudo apt update
-          sudo apt install python3
-          pip install pyinstaller
-          pip install -r requirements.txt
-          ./build.sh
+#          sudo apt update
+#          sudo apt install python3
+#          pip install pyinstaller
+#          pip install -r requirements.txt
+#          ./build.sh
           rm -fr dist/o2eb
           zip -r dist/o2eb_macos_x86.zip . -i dist/o2eb.app
         displayName: 'MacOS obs2eBird build script'
-      - publish: $(System.DefaultWorkingDirectory)/dist
-        artifact: MacOS
+#      - publish: $(System.DefaultWorkingDirectory)/dist
+#        artifact: MacOS
       - task: CopyFiles@2
         inputs:
           SourceFolder: '$(System.DefaultWorkingDirectory)/dist/'
@@ -107,13 +107,13 @@ jobs:
       vmImage: windows-latest
     steps:
       - script: |
-          pip install pyinstaller
-          pip install -r requirements.txt
-          build.bat
-          ren dist\o2eb.exe dist\o2eb_win_x64.exe
+#          pip install pyinstaller
+#          pip install -r requirements.txt
+#          build.bat
+          mv dist/o2eb.exe dist/o2eb_win_x64.exe
         displayName: 'Win obs2eBird build script'
-      - publish: $(System.DefaultWorkingDirectory)/dist
-        artifact: 'Windows'
+#      - publish: $(System.DefaultWorkingDirectory)/dist
+#        artifact: 'Windows'
       - task: CopyFiles@2
         inputs:
           SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
