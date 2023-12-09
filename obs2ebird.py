@@ -100,10 +100,10 @@ def import_obs(input_file, folder='.'):
                 if 'local x' not in d:
                     d['local x'] = ''
                     d['local y'] = ''
-                d.to_sql(name=config['mysql']['db'], con=cnx, if_exists='replace')
-            # with sqlEngine.begin() as cnx:
-            #    sql = f"REPLACE INTO `{config['mysql']['db']}` SELECT * FROM `temp_table`"
-            #    cnx.execute(text(sql))
+                # d.to_sql(name=config['mysql']['db'], con=cnx, if_exists='replace')
+                d.to_sql(name='temp_table', con=cnx, if_exists='replace')
+                sql = f"REPLACE INTO `{config['mysql']['db']}` SELECT * FROM `temp_table`"
+                cnx.execute(text(sql))
         return None
 
     except sqlalchemy.exc.OperationalError:
