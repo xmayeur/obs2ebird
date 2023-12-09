@@ -41,7 +41,7 @@ jobs:
           Write-Host "##vso[task.setvariable variable=sha;]$sha"
     - task: GitHubRelease@1
       inputs:
-        gitHubConnection: 'xmayeur'
+        gitHubConnection: 'github.com_xmayeur'
         repositoryName: 'xmayeur/obs2ebird'
         action: 'create'
         target: '$(sha)'
