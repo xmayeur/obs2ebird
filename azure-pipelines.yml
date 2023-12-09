@@ -49,7 +49,7 @@ jobs:
           title: 'v0.2'
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
-          assets: '$(Build.ArtifactStagingDirectory)/release/*'
+          assets: '$(Build.ArtifactStagingDirectory)/*'
           addChangeLog: false
 
   - job: macos
@@ -96,7 +96,7 @@ jobs:
           title: 'v0.2'
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
-          assets: '$(Build.ArtifactStagingDirectory)/release/*'
+          assets: '$(Build.ArtifactStagingDirectory)/*'
           addChangeLog: false
 
   - job: windows
@@ -141,7 +141,7 @@ jobs:
           title: 'v0.2'
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
-          assets: '$(Build.ArtifactStagingDirectory)/release/*'
+          assets: '$(Build.ArtifactStagingDirectory)/*'
           addChangeLog: false
 
 
