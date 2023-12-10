@@ -12,7 +12,7 @@ jobs:
     steps:
       - script: |
           echo 'building'
-          sudo apt update && sudo apt install python-tk -y
+          sudo apt update && && sudo apt remove python2 -y && sudo apt install python3-tk -y
           pip3 install pyinstaller
           pip3 install -r requirements.txt
           ./build_linux.sh
