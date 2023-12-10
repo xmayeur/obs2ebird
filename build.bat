@@ -5,5 +5,6 @@ pyinstaller --onefile ^
  --icon images\bird.png ^
  --collect-submodules  "obs2ebird.py" ^
  --collect-submodules  "get_secrets.py" ^
+ --hidden-import='tkinter' ^
  --hidden-import="PIL._tkinter_finder" ^
  o2eb.py
