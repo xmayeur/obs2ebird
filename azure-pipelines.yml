@@ -112,16 +112,16 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
           build.bat
-          mv dist/o2eb.exe dist/o2eb_win_x64.exe
-          ls dist
+          # mv dist/o2eb.exe dist/o2eb_win_x64.exe
+          # ls dist
 
         displayName: 'Win obs2eBird build script'
       #      - publish: $(System.DefaultWorkingDirectory)/dist
       #        artifact: 'Windows'
       - task: CopyFiles@2
         inputs:
-          SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
-          Contents: 'o2eb_win_x64.exe'
+          SourceFolder: '$(System.DefaultWorkingDirectory)/dist/'
+          Contents: 'o2eb.exe'
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: release'
