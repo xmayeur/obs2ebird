@@ -18,6 +18,7 @@ def get_config():
     if not exists(config_file):
         _config = {
             "sqlite": {"db": join(getenv('HOME'), "observations.sqlite")},
+            "mysql": {"db": "observations", "host": "localhost", "port": "3306"},
             "default": {"db_dialect": "sqlite"}
         }
         dump(_config, open(config_file, 'w'), Dumper=Dumper)
