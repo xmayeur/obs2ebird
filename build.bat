@@ -1,7 +1,6 @@
- venv\scripts\activate
- pyinstaller --onefile ^
- --add-data "images\background.jpg:images" ^
- --add-data "images\folder.png:images" ^
+pyinstaller --onefile ^
+ --add-data "images\background.jpg;images" ^
+ --add-data "images\folder.png;images" ^
  --noconfirm ^
  --icon images\bird.png ^
  --collect-submodules  "obs2ebird.py" ^

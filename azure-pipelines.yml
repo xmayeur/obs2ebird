@@ -46,8 +46,8 @@ jobs:
           action: 'edit'
           target: '$(sha)'
           tagSource: 'userSpecifiedTag'
-          tag: '0.2'
-          title: 'v0.2'
+          tag: '0.3'
+          title: 'v0.3'
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
           assets: '$(Build.ArtifactStagingDirectory)/*'
@@ -65,7 +65,8 @@ jobs:
           pip install -r requirements.txt
           ./build.sh
           rm -fr dist/o2eb
-          zip -r dist/o2eb_macos_x86.zip dist/o2eb.app
+          cd dist
+          zip -r o2eb_macos_x86.zip o2eb.app
 
         displayName: 'MacOS obs2eBird build script'
       #      - publish: $(System.DefaultWorkingDirectory)/dist
@@ -113,6 +114,7 @@ jobs:
           pip install -r requirements.txt
           build.bat
           mv dist/o2eb.exe dist/o2eb_win_x64.exe
+          ls dist
 
         displayName: 'Win obs2eBird build script'
       #      - publish: $(System.DefaultWorkingDirectory)/dist
@@ -143,7 +145,7 @@ jobs:
           action: 'edit'
           target: '$(sha)'
           tagSource: 'userSpecifiedTag'
-          tag: '0.2'
+          tag: '0.2 b
           title: 'v0.2'
           #         tag: '$(tag)'
           #         title: 'v$(tag)'
