@@ -7,7 +7,7 @@ variables:
   tag: '0.2'
   title: 'v0.2'
 
-.jobs-template:
+jobs-template:
   steps:
     - task: CopyFiles@2
       inputs:
