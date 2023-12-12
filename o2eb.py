@@ -242,7 +242,7 @@ class O2ebGui(tk.Tk):
                                      text="GENERATE eBIRD FILE",
                                      command=self.export_event)
         self.btn_export.grid(column=0, row=row, sticky=tk.E)
-
+        
         row += 1
         # status label
         self.export_status = tk.StringVar()
