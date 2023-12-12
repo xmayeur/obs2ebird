@@ -1,10 +1,12 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
   - master
+
+variables:
+  githubConnection: 'github.com_xmayeur'
+  repositoryName: 'xmayeur/obs2ebird'
+  tag: '0.2'
+  title: 'v0.2'
+
 jobs:
   - job: linux
     pool:
@@ -18,41 +20,11 @@ jobs:
           ./build_linux.sh
           mv dist/o2eb dist/o2eb_linux_x64
         displayName: 'Linux obs2eBird build script'
-      #      - publish: $(System.DefaultWorkingDirectory)/dist
-      #        artifact: Linux
-      - task: CopyFiles@2
-        inputs:
+      - template: pipeline-template.yml
+        parameters:
           SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
           Contents: 'o2eb_linux_x64'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact: release'
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
           ArtifactName: 'Linux'
-          publishLocation: 'Container'
-      - task: PowerShell@2
-        displayName: 'Get latest SHA commmit from repo'
-        inputs:
-          targetType: 'inline'
-          script: |
-            $commits = Invoke-RestMethod -Method GET -Uri "https://api.github.com/repos/xmayeur/obs2ebird/commits"
-            $sha = $commits[0].sha
-            Write-Host "##vso[task.setvariable variable=sha;]$sha"
-      - task: GitHubRelease@1
-        inputs:
-          gitHubConnection: 'github.com_xmayeur'
-          repositoryName: 'xmayeur/obs2ebird'
-          action: 'edit'
-          target: '$(sha)'
-          tagSource: 'userSpecifiedTag'
-          tag: '0.2'
-          title: 'v0.2'
-          #         tag: '$(tag)'
-          #         title: 'v$(tag)'
-          assets: '$(Build.ArtifactStagingDirectory)/*'
-          assetUploadMode: 'replace'
-          addChangeLog: false
 
   - job: macos
     pool:
@@ -69,41 +41,11 @@ jobs:
           zip -r o2eb_macos_x86.zip o2eb.app
 
         displayName: 'MacOS obs2eBird build script'
-      #      - publish: $(System.DefaultWorkingDirectory)/dist
-      #        artifact: MacOS
-      - task: CopyFiles@2
-        inputs:
-          SourceFolder: '$(System.DefaultWorkingDirectory)/dist/'
+      - template: pipeline-template.yml
+        parameters:
+          SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
           Contents: 'o2eb_macos_x86.zip'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact: release'
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'MacOs'
-          publishLocation: 'Container'
-      - task: PowerShell@2
-        displayName: 'Get latest SHA commmit from repo'
-        inputs:
-          targetType: 'inline'
-          script: |
-            $commits = Invoke-RestMethod -Method GET -Uri "https://api.github.com/repos/xmayeur/obs2ebird/commits"
-            $sha = $commits[0].sha
-            Write-Host "##vso[task.setvariable variable=sha;]$sha"
-      - task: GitHubRelease@1
-        inputs:
-          gitHubConnection: 'github.com_xmayeur'
-          repositoryName: 'xmayeur/obs2ebird'
-          action: 'edit'
-          target: '$(sha)'
-          tagSource: 'userSpecifiedTag'
-          tag: '0.2'
-          title: 'v0.2'
-          #         tag: '$(tag)'
-          #         title: 'v$(tag)'
-          assets: '$(Build.ArtifactStagingDirectory)/*'
-          assetUploadMode: 'replace'
-          addChangeLog: false
+          ArtifactName: 'MacOS'
 
   - job: windows
     pool:
@@ -113,44 +55,9 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
           build.bat
-          # mv dist/o2eb.exe dist/o2eb_win_x64.exe
-          # ls dist
-
         displayName: 'Win obs2eBird build script'
-      #      - publish: $(System.DefaultWorkingDirectory)/dist
-      #        artifact: 'Windows'
-      - task: CopyFiles@2
-        inputs:
-          SourceFolder: '$(System.DefaultWorkingDirectory)/dist/'
+      - template: pipeline-template.yml
+        parameters:
+          SourceFolder: '$(System.DefaultWorkingDirectory)/dist'
           Contents: 'o2eb.exe'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact: release'
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
           ArtifactName: 'Windows'
-          publishLocation: 'Container'
-      - task: PowerShell@2
-        displayName: 'Get latest SHA commmit from repo'
-        inputs:
-          targetType: 'inline'
-          script: |
-            $commits = Invoke-RestMethod -Method GET -Uri "https://api.github.com/repos/xmayeur/obs2ebird/commits"
-            $sha = $commits[0].sha
-            Write-Host "##vso[task.setvariable variable=sha;]$sha"
-      - task: GitHubRelease@1
-        inputs:
-          gitHubConnection: 'github.com_xmayeur'
-          repositoryName: 'xmayeur/obs2ebird'
-          action: 'edit'
-          target: '$(sha)'
-          tagSource: 'userSpecifiedTag'
-          tag: '0.2'
-          title: 'v0.2'
-          #         tag: '$(tag)'
-          #         title: 'v$(tag)'
-          assetUploadMode: 'replace'
-          assets: '$(Build.ArtifactStagingDirectory)/*'
-          addChangeLog: false
-
-

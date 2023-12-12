@@ -56,7 +56,13 @@ def db_conn():
             port = config['mysql']['port']
             db = config['mysql']['db']
             return create_engine(f'mysql+pymysql://{user}:{pwd}@{host}:{port}/{db}', pool_recycle=3600), db
-        except:
+        except IOError:
+            print('Cannot open secrets file')
+            return None, None
+        except TypeError:
+            return None, None
+        except KeyError:
+            print('Invalid config file')
             return None, None
 
 

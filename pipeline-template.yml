@@ -1,0 +1,29 @@
+steps:
+  - task: CopyFiles@2
+    inputs:
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: release'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      publishLocation: 'Container'
+  - task: PowerShell@2
+    displayName: 'Get latest SHA commmit from repo'
+    inputs:
+      targetType: 'inline'
+      script: |
+        $commits = Invoke-RestMethod -Method GET -Uri 'https://api.github.com/repos/${{ variables.repositoryName }}/commits'
+        $sha = $commits[0].sha
+        Write-Host "##vso[task.setvariable variable=sha;]$sha"
+  - task: GitHubRelease@1
+    inputs:
+      gitHubConnection: ${{ variables.githubConnection }}
+      repositoryName: ${{ variables.repositoryName }}
+      action: 'edit'
+      target: '$(sha)'
+      tagSource: 'userSpecifiedTag'
+      tag: ${{ variables.tag }}
+      title: ${{ variables.title }}
+      assets: '$(Build.ArtifactStagingDirectory)/*'
+      assetUploadMode: 'replace'
+      addChangeLog: false
